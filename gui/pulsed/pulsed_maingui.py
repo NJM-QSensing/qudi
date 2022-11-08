@@ -328,6 +328,7 @@ class PulsedMeasurementGui(GUIBase):
     def _connect_pulse_generator_tab_signals(self):
         # Connect Block/Ensemble editor tab signals
         self._pg.gen_laserchannel_ComboBox.currentIndexChanged.connect(self.generation_parameters_changed)
+        self._pg.gen_nextchannel_ComboBox.currentIndexChanged.connect(self.generation_parameters_changed)
         self._pg.gen_syncchannel_ComboBox.currentIndexChanged.connect(self.generation_parameters_changed)
         self._pg.gen_gatechannel_ComboBox.currentIndexChanged.connect(self.generation_parameters_changed)
 
@@ -380,6 +381,11 @@ class PulsedMeasurementGui(GUIBase):
         self._pa.ext_control_use_mw_CheckBox.stateChanged.connect(self.microwave_settings_changed)
         self._pa.ext_control_mw_freq_DoubleSpinBox.editingFinished.connect(self.microwave_settings_changed)
         self._pa.ext_control_mw_power_DoubleSpinBox.editingFinished.connect(self.microwave_settings_changed)
+
+        self._pa.ext_control_mw_mode_ComboBox.currentIndexChanged[str].connect(self.microwave_settings_changed)
+        self._pa.ext_control_mw_freq_start_DoubleSpinBox.editingFinished.connect(self.microwave_settings_changed)
+        self._pa.ext_control_mw_freq_end_DoubleSpinBox.editingFinished.connect(self.microwave_settings_changed)
+        self._pa.ext_control_mw_freq_step_DoubleSpinBox.editingFinished.connect(self.microwave_settings_changed)
 
         self._pa.ana_param_invoke_settings_CheckBox.stateChanged.connect(self.measurement_settings_changed)
         self._pa.ana_param_alternating_CheckBox.stateChanged.connect(self.measurement_settings_changed)
@@ -487,6 +493,7 @@ class PulsedMeasurementGui(GUIBase):
     def _disconnect_pulse_generator_tab_signals(self):
         # Connect Block/Ensemble editor tab signals
         self._pg.gen_laserchannel_ComboBox.currentIndexChanged.disconnect()
+        self._pg.gen_nextchannel_ComboBox.currentIndexChanged.disconnect()
         self._pg.gen_syncchannel_ComboBox.currentIndexChanged.disconnect()
         self._pg.gen_gatechannel_ComboBox.currentIndexChanged.disconnect()
 
@@ -538,6 +545,11 @@ class PulsedMeasurementGui(GUIBase):
         self._pa.ext_control_use_mw_CheckBox.stateChanged.disconnect()
         self._pa.ext_control_mw_freq_DoubleSpinBox.editingFinished.disconnect()
         self._pa.ext_control_mw_power_DoubleSpinBox.editingFinished.disconnect()
+
+        self._pa.ext_control_mw_mode_ComboBox.currentIndexChanged[str].disconnect()
+        self._pa.ext_control_mw_freq_start_DoubleSpinBox.editingFinished.disconnect()
+        self._pa.ext_control_mw_freq_end_DoubleSpinBox.editingFinished.disconnect()
+        self._pa.ext_control_mw_freq_step_DoubleSpinBox.editingFinished.disconnect()
 
         self._pa.ana_param_invoke_settings_CheckBox.stateChanged.disconnect()
         self._pa.ana_param_alternating_CheckBox.stateChanged.disconnect()
@@ -774,6 +786,10 @@ class PulsedMeasurementGui(GUIBase):
             self._pa.ana_param_num_laser_pulse_SpinBox.setEnabled(False)
             self._pa.ana_param_record_length_DoubleSpinBox.setEnabled(False)
             self._pa.ext_control_use_mw_CheckBox.setEnabled(False)
+            self._pa.ext_control_mw_mode_ComboBox.setEnabled(False)
+            self._pa.ext_control_mw_freq_start_DoubleSpinBox.setEnabled(False)
+            self._pa.ext_control_mw_freq_end_DoubleSpinBox.setEnabled(False)
+            self._pa.ext_control_mw_freq_step_DoubleSpinBox.setEnabled(False)
             self._pa.ana_param_fc_bins_ComboBox.setEnabled(False)
             self._pa.ana_param_ignore_first_CheckBox.setEnabled(False)
             self._pa.ana_param_ignore_last_CheckBox.setEnabled(False)
@@ -801,6 +817,10 @@ class PulsedMeasurementGui(GUIBase):
                 widget1.setEnabled(True)
                 widget2.setEnabled(True)
             self._pa.ext_control_use_mw_CheckBox.setEnabled(True)
+            self._pa.ext_control_mw_mode_ComboBox.setEnabled(True)
+            self._pa.ext_control_mw_freq_start_DoubleSpinBox.setEnabled(True)
+            self._pa.ext_control_mw_freq_end_DoubleSpinBox.setEnabled(True)
+            self._pa.ext_control_mw_freq_step_DoubleSpinBox.setEnabled(True)
             self._pa.ext_control_mw_freq_DoubleSpinBox.setEnabled(True)
             self._pa.ext_control_mw_power_DoubleSpinBox.setEnabled(True)
             self._pa.ana_param_fc_bins_ComboBox.setEnabled(True)
@@ -1200,7 +1220,7 @@ class PulsedMeasurementGui(GUIBase):
         for param, value in self.pulsedmasterlogic().generation_parameters.items():
             # Do not create widget for laser_channel since this widget is already part of the pulse
             # editor tab.
-            if param in ('laser_channel', 'sync_channel', 'gate_channel'):
+            if param in ('laser_channel', 'sync_channel', 'gate_channel', 'next_channel'):
                 continue
 
             # Create ComboBoxes for parameters ending on '_channel' to only be able to select
@@ -1414,6 +1434,7 @@ class PulsedMeasurementGui(GUIBase):
                 widget1.blockSignals(True)
                 widget2.blockSignals(True)
         self._pg.gen_laserchannel_ComboBox.blockSignals(True)
+        self._pg.gen_nextchannel_ComboBox.blockSignals(True)
         self._pg.gen_syncchannel_ComboBox.blockSignals(True)
         self._pg.gen_gatechannel_ComboBox.blockSignals(True)
         if hasattr(self, '_channel_selection_comboboxes'):
@@ -1464,6 +1485,15 @@ class PulsedMeasurementGui(GUIBase):
             if former_gate_channel in settings_dict['activation_config'][1]:
                 index = self._pg.gen_gatechannel_ComboBox.findText(former_gate_channel)
                 self._pg.gen_gatechannel_ComboBox.setCurrentIndex(index)
+
+            former_next_channel = self._pg.gen_nextchannel_ComboBox.currentText()
+            self._pg.gen_nextchannel_ComboBox.clear()
+            self._pg.gen_nextchannel_ComboBox.addItem('')
+            self._pg.gen_nextchannel_ComboBox.addItems(digital_channels)
+            self._pg.gen_nextchannel_ComboBox.addItems(analog_channels)
+            if former_next_channel in settings_dict['activation_config'][1]:
+                index = self._pg.gen_nextchannel_ComboBox.findText(former_next_channel)
+                self._pg.gen_nextchannel_ComboBox.setCurrentIndex(index)
 
             if hasattr(self, '_channel_selection_comboboxes'):
                 for widget in self._channel_selection_comboboxes:
@@ -1543,6 +1573,7 @@ class PulsedMeasurementGui(GUIBase):
                 widget1.blockSignals(False)
                 widget2.blockSignals(False)
         self._pg.gen_laserchannel_ComboBox.blockSignals(False)
+        self._pg.gen_nextchannel_ComboBox.blockSignals(False)
         self._pg.gen_syncchannel_ComboBox.blockSignals(False)
         self._pg.gen_gatechannel_ComboBox.blockSignals(False)
         if hasattr(self, '_channel_selection_comboboxes'):
@@ -1558,6 +1589,7 @@ class PulsedMeasurementGui(GUIBase):
         """
         settings_dict = dict()
         settings_dict['laser_channel'] = self._pg.gen_laserchannel_ComboBox.currentText()
+        settings_dict['next_channel'] = self._pg.gen_nextchannel_ComboBox.currentText()
         settings_dict['sync_channel'] = self._pg.gen_syncchannel_ComboBox.currentText()
         settings_dict['gate_channel'] = self._pg.gen_gatechannel_ComboBox.currentText()
         # Add channel specifiers from predefined methods tab
@@ -1593,6 +1625,7 @@ class PulsedMeasurementGui(GUIBase):
         # block signals
         self._pg.gen_laserchannel_ComboBox.blockSignals(True)
         self._pg.gen_syncchannel_ComboBox.blockSignals(True)
+        self._pg.gen_nextchannel_ComboBox.blockSignals(True)
         self._pg.gen_gatechannel_ComboBox.blockSignals(True)
 
         if 'laser_channel' in settings_dict:
@@ -1605,6 +1638,9 @@ class PulsedMeasurementGui(GUIBase):
         if 'gate_channel' in settings_dict:
             index = self._pg.gen_gatechannel_ComboBox.findText(settings_dict['gate_channel'])
             self._pg.gen_gatechannel_ComboBox.setCurrentIndex(index)
+        if 'next_channel' in settings_dict:
+            index = self._pg.gen_nextchannel_ComboBox.findText(settings_dict['next_channel'])
+            self._pg.gen_nextchannel_ComboBox.setCurrentIndex(index)
         if hasattr(self, '_channel_selection_comboboxes'):
             for combobox in self._channel_selection_comboboxes:
                 param_name = combobox.objectName()[13:]
@@ -1628,6 +1664,7 @@ class PulsedMeasurementGui(GUIBase):
 
         # unblock signals
         self._pg.gen_laserchannel_ComboBox.blockSignals(False)
+        self._pg.gen_nextchannel_ComboBox.blockSignals(False)
         self._pg.gen_syncchannel_ComboBox.blockSignals(False)
         self._pg.gen_gatechannel_ComboBox.blockSignals(False)
         return
@@ -2355,6 +2392,7 @@ class PulsedMeasurementGui(GUIBase):
         self.measurement_settings_updated(self.pulsedmasterlogic().measurement_settings)
         self.fast_counter_settings_updated(self.pulsedmasterlogic().fast_counter_settings)
         self.microwave_settings_updated(self.pulsedmasterlogic().ext_microwave_settings)
+        self.microwave_settings_changed()
         # Update analysis interval from logic
         self._pa.time_param_ana_periode_DoubleSpinBox.setValue(
             self.pulsedmasterlogic().timer_interval)
@@ -2379,11 +2417,20 @@ class PulsedMeasurementGui(GUIBase):
         fc_constraints = self.pulsedmasterlogic().fast_counter_constraints
         # block signals
         self._pa.ext_control_mw_freq_DoubleSpinBox.blockSignals(True)
+        self._pa.ext_control_mw_freq_start_DoubleSpinBox.blockSignals(True)
+        self._pa.ext_control_mw_freq_end_DoubleSpinBox.blockSignals(True)
+        self._pa.ext_control_mw_freq_step_DoubleSpinBox.blockSignals(True)
         self._pa.ext_control_mw_power_DoubleSpinBox.blockSignals(True)
         self._pa.ana_param_fc_bins_ComboBox.blockSignals(True)
         # apply constraints
         self._pa.ext_control_mw_freq_DoubleSpinBox.setRange(mw_constraints.min_frequency,
                                                             mw_constraints.max_frequency)
+        self._pa.ext_control_mw_freq_start_DoubleSpinBox.setRange(mw_constraints.min_frequency,
+                                                            mw_constraints.max_frequency)
+        self._pa.ext_control_mw_freq_end_DoubleSpinBox.setRange(mw_constraints.min_frequency,
+                                                            mw_constraints.max_frequency)
+        self._pa.ext_control_mw_freq_step_DoubleSpinBox.setRange(mw_constraints.list_minstep,
+                                                            mw_constraints.list_maxstep)
         self._pa.ext_control_mw_power_DoubleSpinBox.setRange(mw_constraints.min_power,
                                                              mw_constraints.max_power)
         self._pa.ana_param_fc_bins_ComboBox.clear()
@@ -2391,6 +2438,9 @@ class PulsedMeasurementGui(GUIBase):
             self._pa.ana_param_fc_bins_ComboBox.addItem(str(binwidth))
         # unblock signals
         self._pa.ext_control_mw_freq_DoubleSpinBox.blockSignals(False)
+        self._pa.ext_control_mw_freq_start_DoubleSpinBox.blockSignals(False)
+        self._pa.ext_control_mw_freq_end_DoubleSpinBox.blockSignals(False)
+        self._pa.ext_control_mw_freq_step_DoubleSpinBox.blockSignals(False)
         self._pa.ext_control_mw_power_DoubleSpinBox.blockSignals(False)
         self._pa.ana_param_fc_bins_ComboBox.blockSignals(False)
         return
@@ -2518,26 +2568,74 @@ class PulsedMeasurementGui(GUIBase):
             return
 
         use_ext_microwave = self._pa.ext_control_use_mw_CheckBox.isChecked()
+        ext_microwave_mode = self._pa.ext_control_mw_mode_ComboBox.currentText()
 
         settings_dict = dict()
         settings_dict['use_ext_microwave'] = use_ext_microwave
         settings_dict['frequency'] = self._pa.ext_control_mw_freq_DoubleSpinBox.value()
         settings_dict['power'] = self._pa.ext_control_mw_power_DoubleSpinBox.value()
+        settings_dict['frequency_start'] = self._pa.ext_control_mw_freq_start_DoubleSpinBox.value()
+        settings_dict['frequency_end'] = self._pa.ext_control_mw_freq_end_DoubleSpinBox.value()
+        settings_dict['frequency_step'] = self._pa.ext_control_mw_freq_step_DoubleSpinBox.value()
+        settings_dict['mw_mode'] = ext_microwave_mode
 
-        if use_ext_microwave and not self._pa.ext_control_mw_freq_DoubleSpinBox.isVisible():
+        if use_ext_microwave and ext_microwave_mode == 'CW':
+            self._pa.ext_control_mw_mode_ComboBox.setEnabled(True)
+
             self._pa.ext_control_mw_freq_Label.setVisible(True)
             self._pa.ext_control_mw_freq_DoubleSpinBox.setVisible(True)
+            self._pa.ext_control_mw_freq_DoubleSpinBox.setEnabled(True)
+
             self._pa.ext_control_mw_power_Label.setVisible(True)
             self._pa.ext_control_mw_power_DoubleSpinBox.setVisible(True)
-            self._pa.ext_control_mw_freq_DoubleSpinBox.setEnabled(True)
             self._pa.ext_control_mw_power_DoubleSpinBox.setEnabled(True)
-        elif not use_ext_microwave and self._pa.ext_control_mw_freq_DoubleSpinBox.isVisible():
-            self._pa.ext_control_mw_freq_DoubleSpinBox.setEnabled(False)
-            self._pa.ext_control_mw_power_DoubleSpinBox.setEnabled(False)
+
+            self._pa.ext_control_mw_list_Label.setVisible(False)
+
+            self._pa.ext_control_mw_freq_start_Label.setVisible(False)
+            self._pa.ext_control_mw_freq_start_DoubleSpinBox.setEnabled(False)
+            self._pa.ext_control_mw_freq_start_DoubleSpinBox.setVisible(False)
+
+            self._pa.ext_control_mw_freq_end_Label.setVisible(False)
+            self._pa.ext_control_mw_freq_end_DoubleSpinBox.setEnabled(False)
+            self._pa.ext_control_mw_freq_end_DoubleSpinBox.setVisible(False)
+
+            self._pa.ext_control_mw_freq_step_Label.setVisible(False)
+            self._pa.ext_control_mw_freq_step_DoubleSpinBox.setEnabled(False)
+            self._pa.ext_control_mw_freq_step_DoubleSpinBox.setVisible(False)
+
+        elif use_ext_microwave and ext_microwave_mode == 'List':
+            self._pa.ext_control_mw_mode_ComboBox.setEnabled(True)
+
             self._pa.ext_control_mw_freq_Label.setVisible(False)
             self._pa.ext_control_mw_freq_DoubleSpinBox.setVisible(False)
-            self._pa.ext_control_mw_power_Label.setVisible(False)
-            self._pa.ext_control_mw_power_DoubleSpinBox.setVisible(False)
+            self._pa.ext_control_mw_freq_DoubleSpinBox.setEnabled(False)
+
+            self._pa.ext_control_mw_power_Label.setVisible(True)
+            self._pa.ext_control_mw_power_DoubleSpinBox.setVisible(True)
+            self._pa.ext_control_mw_power_DoubleSpinBox.setEnabled(True)
+
+            self._pa.ext_control_mw_list_Label.setVisible(True)
+
+            self._pa.ext_control_mw_freq_start_Label.setVisible(True)
+            self._pa.ext_control_mw_freq_start_DoubleSpinBox.setEnabled(True)
+            self._pa.ext_control_mw_freq_start_DoubleSpinBox.setVisible(True)
+
+            self._pa.ext_control_mw_freq_end_Label.setVisible(True)
+            self._pa.ext_control_mw_freq_end_DoubleSpinBox.setEnabled(True)
+            self._pa.ext_control_mw_freq_end_DoubleSpinBox.setVisible(True)
+
+            self._pa.ext_control_mw_freq_step_Label.setVisible(True)
+            self._pa.ext_control_mw_freq_step_DoubleSpinBox.setEnabled(True)
+            self._pa.ext_control_mw_freq_step_DoubleSpinBox.setVisible(True)
+
+        elif not use_ext_microwave:
+            self._pa.ext_control_mw_mode_ComboBox.setEnabled(False)
+            self._pa.ext_control_mw_freq_DoubleSpinBox.setEnabled(False)
+            self._pa.ext_control_mw_power_DoubleSpinBox.setEnabled(False)
+            self._pa.ext_control_mw_freq_start_DoubleSpinBox.setEnabled(False)
+            self._pa.ext_control_mw_freq_end_DoubleSpinBox.setEnabled(False)
+            self._pa.ext_control_mw_freq_step_DoubleSpinBox.setEnabled(False)
 
         self.pulsedmasterlogic().set_ext_microwave_settings(settings_dict)
         return
@@ -2552,21 +2650,38 @@ class PulsedMeasurementGui(GUIBase):
         self._pa.ext_control_mw_freq_DoubleSpinBox.blockSignals(True)
         self._pa.ext_control_mw_power_DoubleSpinBox.blockSignals(True)
         self._pa.ext_control_use_mw_CheckBox.blockSignals(True)
+        self._pa.ext_control_mw_mode_ComboBox.blockSignals(True)
+        self._pa.ext_control_mw_freq_start_DoubleSpinBox.blockSignals(True)
+        self._pa.ext_control_mw_freq_end_DoubleSpinBox.blockSignals(True)
+        self._pa.ext_control_mw_freq_step_DoubleSpinBox.blockSignals(True)
 
         if 'use_ext_microwave' in settings_dict:
             use_ext_microwave = settings_dict['use_ext_microwave']
             self._pa.ext_control_use_mw_CheckBox.setChecked(use_ext_microwave)
             # Set visibility
-            self.toggle_microwave_settings_editor(settings_dict['use_ext_microwave'])
+            # self.toggle_microwave_settings_editor(settings_dict['use_ext_microwave'])
         if 'frequency' in settings_dict:
             self._pa.ext_control_mw_freq_DoubleSpinBox.setValue(settings_dict['frequency'])
         if 'power' in settings_dict:
             self._pa.ext_control_mw_power_DoubleSpinBox.setValue(settings_dict['power'])
+        if 'frequency_start' in settings_dict:
+            self._pa.ext_control_mw_freq_start_DoubleSpinBox.setValue(settings_dict['frequency_start'])
+        if 'frequency_end' in settings_dict:
+            self._pa.ext_control_mw_freq_end_DoubleSpinBox.setValue(settings_dict['frequency_end'])
+        if 'frequency_step' in settings_dict:
+            self._pa.ext_control_mw_freq_step_DoubleSpinBox.setValue(settings_dict['frequency_step'])
+        if 'mw_mode' in settings_dict:
+            index = self._pa.ext_control_mw_mode_ComboBox.findText(settings_dict['mw_mode'])
+            self._pa.ext_control_mw_mode_ComboBox.setCurrentIndex(index)
 
         # unblock signals
         self._pa.ext_control_mw_freq_DoubleSpinBox.blockSignals(False)
         self._pa.ext_control_mw_power_DoubleSpinBox.blockSignals(False)
         self._pa.ext_control_use_mw_CheckBox.blockSignals(False)
+        self._pa.ext_control_mw_mode_ComboBox.blockSignals(False)
+        self._pa.ext_control_mw_freq_start_DoubleSpinBox.blockSignals(False)
+        self._pa.ext_control_mw_freq_end_DoubleSpinBox.blockSignals(False)
+        self._pa.ext_control_mw_freq_step_DoubleSpinBox.blockSignals(False)
         return
 
     def toggle_microwave_settings_editor(self, show_editor):

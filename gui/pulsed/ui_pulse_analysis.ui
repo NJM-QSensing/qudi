@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1341</width>
-    <height>703</height>
+    <width>1240</width>
+    <height>725</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -325,7 +325,7 @@
      </item>
     </layout>
    </item>
-   <item row="1" column="0" colspan="11">
+   <item row="1" column="0" rowspan="2" colspan="11">
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
       <widget class="QGroupBox" name="groupBox_9">
@@ -337,7 +337,7 @@
        </property>
        <property name="maximumSize">
         <size>
-         <width>300</width>
+         <width>500</width>
          <height>16777215</height>
         </size>
        </property>
@@ -346,8 +346,155 @@
        </property>
        <layout class="QGridLayout" name="gridLayout_26">
         <item row="0" column="1">
-         <layout class="QGridLayout" name="gridLayout_24">
-          <item row="2" column="0">
+         <layout class="QGridLayout" name="gridLayout_24" columnstretch="0,0,0,0,0">
+          <item row="1" column="0">
+           <widget class="QLabel" name="ext_control_mw_mode_Label">
+            <property name="text">
+             <string>MW Mode</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QCheckBox" name="ext_control_use_mw_CheckBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="layoutDirection">
+             <enum>Qt::LeftToRight</enum>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="tristate">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3">
+           <widget class="QLabel" name="ext_control_mw_freq_start_Label">
+            <property name="text">
+             <string>Freq. Start</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="ext_control_ext_mw_Label">
+            <property name="text">
+             <string>External MW:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="ScienDSpinBox" name="ext_control_mw_freq_DoubleSpinBox">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>75</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>200</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="suffix">
+             <string>Hz</string>
+            </property>
+            <property name="maximum">
+             <double>2100000044.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>2.870000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="4">
+           <spacer name="horizontalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="ext_control_mw_mode_ComboBox">
+            <item>
+             <property name="text">
+              <string>CW</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>List</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="3" column="4">
+           <widget class="ScienDSpinBox" name="ext_control_mw_freq_step_DoubleSpinBox">
+            <property name="suffix">
+             <string>Hz</string>
+            </property>
+            <property name="maximum">
+             <double>6000.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>2.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="3">
+           <widget class="QLabel" name="ext_control_mw_freq_step_Label">
+            <property name="text">
+             <string>Freq. Step</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="3">
+           <widget class="QLabel" name="ext_control_mw_freq_end_Label">
+            <property name="text">
+             <string>Freq. End</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="4">
+           <widget class="ScienDSpinBox" name="ext_control_mw_freq_end_DoubleSpinBox">
+            <property name="suffix">
+             <string>Hz</string>
+            </property>
+            <property name="maximum">
+             <double>6.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>2.900000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
            <widget class="QLabel" name="ext_control_mw_power_Label">
             <property name="text">
              <string>MW Power:</string>
@@ -357,7 +504,20 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
+          <item row="1" column="4">
+           <widget class="ScienDSpinBox" name="ext_control_mw_freq_start_DoubleSpinBox">
+            <property name="suffix">
+             <string>Hz</string>
+            </property>
+            <property name="maximum">
+             <double>6.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>2.840000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
            <widget class="ScienDSpinBox" name="ext_control_mw_power_DoubleSpinBox">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -391,83 +551,92 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_34">
-            <property name="text">
-             <string>External MW:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
+          <item row="2" column="0">
            <widget class="QLabel" name="ext_control_mw_freq_Label">
             <property name="text">
-             <string>MW Freq:</string>
+             <string>CW Freq:</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
-           <widget class="QCheckBox" name="ext_control_use_mw_CheckBox">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="layoutDirection">
-             <enum>Qt::LeftToRight</enum>
-            </property>
+          <item row="0" column="3">
+           <widget class="QLabel" name="ext_control_mw_list_Label">
             <property name="text">
-             <string/>
-            </property>
-            <property name="tristate">
-             <bool>false</bool>
+             <string>Microwave List Settings:</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="ScienDSpinBox" name="ext_control_mw_freq_DoubleSpinBox">
-            <property name="enabled">
-             <bool>true</bool>
+          <item row="0" column="2">
+           <spacer name="horizontalSpacer_4">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
             </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
+            <property name="sizeHint" stdset="0">
              <size>
-              <width>75</width>
-              <height>0</height>
+              <width>40</width>
+              <height>20</height>
              </size>
             </property>
-            <property name="maximumSize">
+           </spacer>
+          </item>
+          <item row="1" column="2">
+           <spacer name="horizontalSpacer_5">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
              <size>
-              <width>200</width>
-              <height>16777215</height>
+              <width>40</width>
+              <height>20</height>
              </size>
             </property>
-            <property name="suffix">
-             <string>Hz</string>
+           </spacer>
+          </item>
+          <item row="2" column="2">
+           <spacer name="horizontalSpacer_6">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
             </property>
-            <property name="maximum">
-             <double>2100000044.000000000000000</double>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
             </property>
-            <property name="value">
-             <double>2870.000000000000000</double>
+           </spacer>
+          </item>
+          <item row="3" column="2">
+           <spacer name="horizontalSpacer_7">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
             </property>
-           </widget>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
           </item>
          </layout>
         </item>
        </layout>
       </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
      </item>
      <item>
       <widget class="QGroupBox" name="groupBox_8">
@@ -481,35 +650,12 @@
         <string>Measurement Parameters</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_28">
-        <item row="0" column="0">
+        <item row="0" column="3">
          <layout class="QGridLayout" name="gridLayout_25">
-          <item row="0" column="2" rowspan="7">
-           <widget class="Line" name="line">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="4">
-           <widget class="QCheckBox" name="ana_param_ignore_last_CheckBox">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="layoutDirection">
-             <enum>Qt::LeftToRight</enum>
-            </property>
+          <item row="6" column="3">
+           <widget class="QLabel" name="label_5">
             <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="3">
-           <widget class="QLabel" name="ana_param_record_length_Label">
-            <property name="text">
-             <string>Counter record length:</string>
+             <string>Ignore last:</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -538,22 +684,23 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="4">
-           <widget class="ScienDSpinBox" name="ana_param_x_axis_start_ScienDSpinBox">
-            <property name="enabled">
-             <bool>true</bool>
+          <item row="0" column="3">
+           <widget class="QLabel" name="ana_param_record_length_Label">
+            <property name="text">
+             <string>Counter record length:</string>
             </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
             </property>
-            <property name="maximum">
-             <double>999999999.000000000000000</double>
+           </widget>
+          </item>
+          <item row="4" column="3">
+           <widget class="QLabel" name="ana_param_num_laserpulses_Label">
+            <property name="text">
+             <string>Num Laserpulses:</string>
             </property>
-            <property name="value">
-             <double>1.000000000000000</double>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
             </property>
            </widget>
           </item>
@@ -576,25 +723,6 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="4">
-           <widget class="QSpinBox" name="ana_param_num_laser_pulse_SpinBox">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimum">
-             <number>0</number>
-            </property>
-            <property name="maximum">
-             <number>10000000</number>
-            </property>
-            <property name="value">
-             <number>50</number>
-            </property>
-           </widget>
-          </item>
           <item row="2" column="3">
            <widget class="QLabel" name="ana_param_x_axis_start_Label">
             <property name="text">
@@ -605,38 +733,50 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="3">
-           <widget class="QLabel" name="ana_param_x_axis_inc_Label">
+          <item row="1" column="4">
+           <widget class="QCheckBox" name="ana_param_alternating_CheckBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="layoutDirection">
+             <enum>Qt::LeftToRight</enum>
+            </property>
             <property name="text">
-             <string>controlled variable incr:</string>
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="QComboBox" name="second_plot_ComboBox">
+            <item>
+             <property name="text">
+              <string>None</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>FFT</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Delta</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="second_plot_Label">
+            <property name="text">
+             <string>Alternative plot:</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
             </property>
            </widget>
-          </item>
-          <item row="4" column="3">
-           <widget class="QLabel" name="ana_param_num_laserpulses_Label">
-            <property name="text">
-             <string>Num Laserpulses:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_22">
-            <property name="text">
-             <string>Counter Binwidth (s):</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="ana_param_fc_bins_ComboBox"/>
           </item>
           <item row="2" column="0">
            <widget class="QLabel" name="label_2">
@@ -670,42 +810,10 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="4">
-           <widget class="QCheckBox" name="ana_param_ignore_first_CheckBox">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="layoutDirection">
-             <enum>Qt::LeftToRight</enum>
-            </property>
+          <item row="5" column="0">
+           <widget class="QLabel" name="show_errorbars_Label">
             <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="4">
-           <widget class="QCheckBox" name="ana_param_alternating_CheckBox">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="layoutDirection">
-             <enum>Qt::LeftToRight</enum>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="3">
-           <widget class="QLabel" name="label_3">
-            <property name="text">
-             <string>Alternating:</string>
+             <string>Error bars:</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -725,52 +833,38 @@
             </property>
            </widget>
           </item>
-          <item row="6" column="3">
-           <widget class="QLabel" name="label_5">
-            <property name="text">
-             <string>Ignore last:</string>
+          <item row="6" column="4">
+           <widget class="QCheckBox" name="ana_param_ignore_last_CheckBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            <property name="layoutDirection">
+             <enum>Qt::LeftToRight</enum>
+            </property>
+            <property name="text">
+             <string/>
             </property>
            </widget>
           </item>
-          <item row="6" column="1">
-           <widget class="QComboBox" name="second_plot_ComboBox">
-            <item>
-             <property name="text">
-              <string>None</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>FFT</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Delta</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item row="6" column="0">
-           <widget class="QLabel" name="second_plot_Label">
-            <property name="text">
-             <string>Alternative plot:</string>
+          <item row="2" column="4">
+           <widget class="ScienDSpinBox" name="ana_param_x_axis_start_ScienDSpinBox">
+            <property name="enabled">
+             <bool>true</bool>
             </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
-           </widget>
-          </item>
-          <item row="5" column="0">
-           <widget class="QLabel" name="show_errorbars_Label">
-            <property name="text">
-             <string>Error bars:</string>
+            <property name="maximum">
+             <double>999999999.000000000000000</double>
             </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            <property name="value">
+             <double>1.000000000000000</double>
             </property>
            </widget>
           </item>
@@ -787,23 +881,85 @@
             </property>
            </widget>
           </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_22">
+            <property name="text">
+             <string>Counter Binwidth (s):</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Alternating:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="ana_param_fc_bins_ComboBox"/>
+          </item>
+          <item row="0" column="2" rowspan="7">
+           <widget class="Line" name="line">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="4">
+           <widget class="QSpinBox" name="ana_param_num_laser_pulse_SpinBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimum">
+             <number>0</number>
+            </property>
+            <property name="maximum">
+             <number>10000000</number>
+            </property>
+            <property name="value">
+             <number>50</number>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="3">
+           <widget class="QLabel" name="ana_param_x_axis_inc_Label">
+            <property name="text">
+             <string>controlled variable incr:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="4">
+           <widget class="QCheckBox" name="ana_param_ignore_first_CheckBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="layoutDirection">
+             <enum>Qt::LeftToRight</enum>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
        </layout>
       </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
      </item>
     </layout>
    </item>

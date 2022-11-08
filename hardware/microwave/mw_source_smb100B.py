@@ -298,9 +298,12 @@ class MicrowaveSMB100B(Base, MicrowaveInterface):
         self.cw_on()
         self._command_wait(':FREQ:MODE LIST')
         dummy, is_running = self.get_status()
-        while not is_running:
+        timeout_start = time.time()
+        while not is_running and time.time() < timeout_start + self._timeout:
             time.sleep(0.2)
             dummy, is_running = self.get_status()
+        if not is_running:
+            return -1       
         return 0
 
     def set_list(self, frequency=None, power=None):

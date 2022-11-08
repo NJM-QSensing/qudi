@@ -49,7 +49,7 @@ from qtpy import QtCore
 
 class WorkerThread(QtCore.QRunnable):
     """ Create a simple Worker Thread class, with a similar usage to a python
-    Thread object. This Runnable Thread object is intented to be run from a
+    Thread object. This Runnable Thread object is intended to be run from a
     QThreadpool.
 
     @param obj_reference target: A reference to a method, which will be executed
@@ -146,7 +146,7 @@ class HealthChecker(object):
         self._armed = False
 
         # attaches to a 0 argument function, return value is irrelevant
-        # failure to actuate indicates an ill condtion 
+        # failure to actuate indicates an ill condition 
         self._check_function = check_function  
 
         # self signals

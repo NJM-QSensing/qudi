@@ -239,8 +239,8 @@ class BasicPredefinedGenerator(PredefinedGeneratorBase):
         created_ensembles.append(block_ensemble)
         return created_blocks, created_ensembles, created_sequences
 
-    def generate_pulsedodmr(self, name='pulsedODMR', freq_start=2870.0e6, freq_step=0.2e6,
-                            num_of_points=50):
+    def generate_pulsedodmr(self, name='pulsedODMR', mw_trig_chn='d_ch4',trigger_length=1e-3, mw_clock_rate=100, freq_start=2800.0e6, freq_stop=2950.0e6,
+                            freq_step=2.0e6):
         """
 
         """
@@ -249,32 +249,42 @@ class BasicPredefinedGenerator(PredefinedGeneratorBase):
         created_sequences = list()
 
         # Create frequency array
-        freq_array = freq_start + np.arange(num_of_points) * freq_step
+        freq_array = np.arange(freq_start, freq_stop + freq_step, freq_step)
+
+        # Create pulsed_odmr block and append to created_blocks list
+        pulsedodmr_block = PulseBlock(name=name)
 
         # create the elements
-        waiting_element = self._get_idle_element(length=self.wait_time,
-                                                 increment=0)
-        laser_element = self._get_laser_gate_element(length=self.laser_length,
-                                                     increment=0)
+        waiting_element = self._get_idle_element(length=self.wait_time,increment=0)
+        laser_element = self._get_laser_gate_element(length=self.laser_length,increment=0)
         delay_element = self._get_delay_gate_element()
-
-        # Create block and append to created_blocks list
-        pulsedodmr_block = PulseBlock(name=name)
-        for mw_freq in freq_array:
-            mw_element = self._get_mw_element(length=self.rabi_period / 2,
-                                              increment=0,
-                                              amp=self.microwave_amplitude,
-                                              freq=mw_freq,
-                                              phase=0)
-            pulsedodmr_block.append(mw_element)
-            pulsedodmr_block.append(laser_element)
-            pulsedodmr_block.append(delay_element)
-            pulsedodmr_block.append(waiting_element)
+        mw_element = self._get_mw_element(length=self.rabi_period / 2,
+                                    increment=0,
+                                    amp=self.microwave_amplitude,
+                                    freq=self.microwave_frequency,
+                                    phase=0)
+        
+        pulsedodmr_block.append(mw_element)
+        pulsedodmr_block.append(laser_element)
+        pulsedodmr_block.append(delay_element)
+        pulsedodmr_block.append(waiting_element)
         created_blocks.append(pulsedodmr_block)
+
+        reps_per_freq = int((1.0/mw_clock_rate)/pulsedodmr_block.init_length_s)
+
+        # Create MW_Trigger block and append to created_blocks list
+        mw_trigger_block = PulseBlock(name='MW_Trigger')
+
+        # Create the elements
+        mw_trigger_element = self._get_trigger_element(length=trigger_length, increment=0, channels=mw_trig_chn)
+
+        mw_trigger_block.append(mw_trigger_element)
+        created_blocks.append(mw_trigger_block)
 
         # Create block ensemble
         block_ensemble = PulseBlockEnsemble(name=name, rotating_frame=False)
-        block_ensemble.append((pulsedodmr_block.name, 0))
+        block_ensemble.extend([(pulsedodmr_block.name, reps_per_freq - 1), (mw_trigger_block.name, 0)])
+        block_ensemble.repeat(len(freq_array))
 
         # Create and append sync trigger block if needed
         self._add_trigger(created_blocks=created_blocks, block_ensemble=block_ensemble)
@@ -285,7 +295,7 @@ class BasicPredefinedGenerator(PredefinedGeneratorBase):
         block_ensemble.measurement_information['controlled_variable'] = freq_array
         block_ensemble.measurement_information['units'] = ('Hz', '')
         block_ensemble.measurement_information['labels'] = ('Frequency', 'Signal')
-        block_ensemble.measurement_information['number_of_lasers'] = num_of_points
+        block_ensemble.measurement_information['number_of_lasers'] = len(freq_array)
         block_ensemble.measurement_information['counting_length'] = self._get_ensemble_count_length(
             ensemble=block_ensemble, created_blocks=created_blocks)
 

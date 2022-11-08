@@ -551,6 +551,15 @@ class PulseBlockEnsemble(object):
         self.measurement_information = dict()
         return
 
+    def repeat(self, repetitions):
+        """
+        Copy original PulseBlockEnsemble, and append that copy a number of times
+        given by the input variable repetitions
+        """
+
+        self.block_list = self.block_list * repetitions
+        return
+
     def append(self, element):
         """
         """
@@ -1056,6 +1065,11 @@ class PredefinedGeneratorBase:
         return None if channel == '' else channel
 
     @property
+    def next_channel(self):
+        channel = self.generation_parameters.get('next_channel')
+        return None if channel == '' else channel
+
+    @property
     def gate_channel(self):
         channel = self.generation_parameters.get('gate_channel')
         return None if channel == '' else channel
@@ -1218,6 +1232,28 @@ class PredefinedGeneratorBase:
                 laser_gate_element.pulse_function[self.gate_channel] = SamplingFunctions.DC(
                     voltage=self.analog_trigger_voltage)
         return laser_gate_element
+
+    def _get_laser_mw_gate_element(self, length, increment,amp=None,freq=None,phase=None):
+        """
+        """
+        laser_gate_mw_element = self._get_laser_element(length=length,
+                                                     increment=increment)
+        if self.gate_channel:
+            if self.gate_channel.startswith('d'):
+                laser_gate_mw_element.digital_high[self.gate_channel] = True
+            elif self.gate_channel.startswith('a'):
+                laser_gate_mw_element.pulse_function[self.gate_channel] = SamplingFunctions.DC(
+                    voltage=self.analog_trigger_voltage)
+
+        if self.microwave_channel.startswith('d'):
+            laser_gate_mw_element.digital_high[self.microwave_channel]
+        elif self.microwave_channel.startswith('a'):
+            laser_gate_mw_element.pulse_function[self.microwave_channel] = SamplingFunctions.Sin(
+                amplitude=amp,
+                frequency=freq,
+                phase=phase)
+
+        return laser_gate_mw_element
 
     def _get_delay_element(self):
         """

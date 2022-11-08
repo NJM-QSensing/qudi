@@ -146,7 +146,7 @@ class ProteusQMainWindow(QtWidgets.QMainWindow):
         self.show()
 
 class ProteusQGUI(GUIBase):
-    """ GUI to control the ProteusQ. """
+    """ GUI to control the attoDRY 2200 NV system in the Chunhui Du Lab. """
     
     _modclass = 'AttoDRY2200_Pi3_GUI'
     _modtype = 'gui'

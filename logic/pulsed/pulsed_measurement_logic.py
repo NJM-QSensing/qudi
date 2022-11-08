@@ -63,6 +63,10 @@ class PulsedMeasurementLogic(GenericLogic):
     __microwave_power = StatusVar(default=-30.0)
     __microwave_freq = StatusVar(default=2870e6)
     __use_ext_microwave = StatusVar(default=False)
+    __microwave_freq_start = StatusVar(default=2840e6)
+    __microwave_freq_end = StatusVar(default=2900e6)
+    __microwave_freq_step = StatusVar(default=2e6)
+    __microwave_mode = StatusVar(default='CW')
 
     # fast counter settings
     __fast_counter_record_length = StatusVar(default=3.0e-6)
@@ -213,7 +217,7 @@ class PulsedMeasurementLogic(GenericLogic):
         # Connect internal signals
         self.sigStartTimer.connect(self.__analysis_timer.start, QtCore.Qt.QueuedConnection)
         self.sigStopTimer.connect(self.__analysis_timer.stop, QtCore.Qt.QueuedConnection)
-        # self.sigStartSequence.connect(self.do_camera_seq_loop, QtCore.Qt.QueuedConnection)
+    
         return
 
     def on_deactivate(self):
@@ -376,6 +380,10 @@ class PulsedMeasurementLogic(GenericLogic):
         settings_dict['power'] = float(self.__microwave_power)
         settings_dict['frequency'] = float(self.__microwave_freq)
         settings_dict['use_ext_microwave'] = bool(self.__use_ext_microwave)
+        settings_dict['frequency_start'] = float(self.__microwave_freq_start)
+        settings_dict['frequency_end'] = float(self.__microwave_freq_end)
+        settings_dict['frequency_step'] = float(self.__microwave_freq_step)
+        settings_dict['mw_mode'] = str(self.__microwave_mode)
         return settings_dict
 
     @ext_microwave_settings.setter
@@ -394,7 +402,10 @@ class PulsedMeasurementLogic(GenericLogic):
 
         :return int: error code (0:OK, -1:error)
         """
-        err = self.microwave().cw_on()
+        if self.__microwave_mode == 'CW':
+            err = self.microwave().cw_on()
+        else:
+            err = self.microwave().list_on()
         if err < 0:
             self.log.error('Failed to turn on external CW microwave output.')
         self.sigExtMicrowaveRunningUpdated.emit(self.microwave().get_status()[1])
@@ -453,24 +464,48 @@ class PulsedMeasurementLogic(GenericLogic):
                 settings_dict.update(kwargs)
 
             # Set parameters if present
-            if 'power' in settings_dict:
-                self.__microwave_power = float(settings_dict['power'])
-            if 'frequency' in settings_dict:
-                self.__microwave_freq = float(settings_dict['frequency'])
             if 'use_ext_microwave' in settings_dict:
                 self.__use_ext_microwave = bool(settings_dict['use_ext_microwave'])
-
-            if self.__use_ext_microwave:
+            if 'power' in settings_dict:
+                self.__microwave_power = float(settings_dict['power'])
+            if 'frequency_start' in settings_dict:
+                self.__microwave_freq_start = float(settings_dict['frequency_start'])
+            if 'frequency_end' in settings_dict:
+                self.__microwave_freq_end = float(settings_dict['frequency_end'])
+            if 'frequency_step' in settings_dict:
+                self.__microwave_freq_step = float(settings_dict['frequency_step'])
+            if 'frequency' in settings_dict:
+                self.__microwave_freq = float(settings_dict['frequency'])
+            if 'mw_mode' in settings_dict:
+                self.__microwave_mode = str(settings_dict['mw_mode'])
+            if self.__use_ext_microwave and self.__microwave_mode == 'CW':
                 # Apply the settings to hardware
                 self.__microwave_freq, \
                 self.__microwave_power, \
                 dummy = self.microwave().set_cw(frequency=self.__microwave_freq,
                                                 power=self.__microwave_power)
+            elif self.__use_ext_microwave and self.__microwave_mode == 'List':
+                self.__microwave_freq, \
+                self.__microwave_power, \
+                dummy = self.microwave().set_cw(frequency=self.__microwave_freq_start,
+                                                power=self.__microwave_power)
+
+                frequency_list = np.arange(self.__microwave_freq_start, 
+                                           self.__microwave_freq_end + self.__microwave_freq_step,
+                                           self.__microwave_freq_step)
+                dummy, \
+                dummy, \
+                dummy = self.microwave().set_list(frequency=frequency_list,power=self.__microwave_power)
+                # Apply list settings to hardware
 
         # emit update signal for master (GUI or other logic module)
         self.sigExtMicrowaveSettingsUpdated.emit({'power': self.__microwave_power,
                                                   'frequency': self.__microwave_freq,
-                                                  'use_ext_microwave': self.__use_ext_microwave})
+                                                  'use_ext_microwave': self.__use_ext_microwave,
+                                                  'frequency_start': self.__microwave_freq_start,
+                                                  'frequency_end': self.__microwave_freq_end,
+                                                  'frequency_step': self.__microwave_freq_step,
+                                                  'mw_mode': self.__microwave_mode})
         return self.__microwave_freq, self.__microwave_power, self.__use_ext_microwave
     ############################################################################
 
