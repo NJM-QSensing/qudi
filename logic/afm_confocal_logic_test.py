@@ -47,6 +47,8 @@ from deprecation import deprecated
 
 from qtpy import QtCore
 
+import scipy.io as sio #Hanyi Lu @2022.12.21: it is used to save the raw ESR scan data in .mat format
+
 class WorkerThread(QtCore.QRunnable):
     """ Create a simple Worker Thread class, with a similar usage to a python
     Thread object. This Runnable Thread object is intented to be run from a
@@ -3912,42 +3914,6 @@ class AFMConfocalLogic(GenericLogic):
             seq.append([(block_2, 1)])
 
             pulse_dict = seq.pulse_dict
-
-        elif mode == HWRecorderMode.PULSED_ESR:
-
-            seq = PulseSequence()
-            
-            block_1 = PulseBlock()
-            block_2 = PulseBlock()
-
-            d_ch = clear(d_ch)
-            d_ch[self._pulser._pixel_stop] = True
-            block_1.append(init_length = 1e-3, channels = d_ch, repetition = 1)
-
-            d_ch = clear(d_ch)
-            d_ch[self._pulser._laser_channel] = True
-            d_ch[self._pulser._pixel_start] = True
-            block_2.append(init_length = 3e-6, channels = d_ch, repetition = 1)
-
-            d_ch = clear(d_ch)
-            block_2.append(init_length = 700e-9, channels = d_ch, repetition = 1)
-
-            d_ch = clear(d_ch)
-            d_ch[self._pulser._mw_switch] = True
-            block_2.append(init_length = 80e-9, channels = d_ch, repetition = 1)
-
-            seq.append([(block_1, 1)])
-
-            block_3 = PulseBlock()
-
-            d_ch = clear(d_ch)
-            d_ch[self._pulser._sync_in] = True
-            d_ch[self._pulser._mw_switch] = True
-            block_3.append(init_length = 1000e-6, channels = d_ch, repetition = 1)
-
-            seq.append([(block_3, 1)])
-
-            pulse_dict = seq.pulse_dict
         
         return pulse_dict
 
@@ -4887,6 +4853,22 @@ class AFMConfocalLogic(GenericLogic):
 
         if timestamp is None:
             timestamp = datetime.datetime.now()
+
+        #Hanyi Lu@2022.12.21 extract and save the raw ESR data from the scan as well(in .mat format)
+        esr_data = self.get_esr_data()  
+
+        #arrange data according to date
+        date = datetime.date.today()
+        directory = save_path + 'raw ESR data'
+        if not os.path.isdir(directory):
+            os.makedirs(directory)
+
+        #save the raw ESR data
+        index = len(os.listdir(directory)) + 1
+        savedict = {'rawESR':esr_data['esr_fw']['data'], 'x_val':esr_data['esr_fw']['coord0_arr'], 'y_val':esr_data['esr_fw']['coord1_arr'], 'frequency':esr_data['esr_fw']['coord2_arr']}
+        save_file = directory + '/' + date.strftime("%Y%m%d") + str(index) + '.mat'
+        sio.savemat(save_file, savedict)
+        #end of Hanyi's modification
 
         for entry in scan_params:
             parameters = {}

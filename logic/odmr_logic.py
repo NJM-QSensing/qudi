@@ -49,11 +49,11 @@ class ODMRLogic(GenericLogic):
     # config option
     mw_scanmode = ConfigOption(
         'scanmode',
-        'LIST',
+        'LIST',  
         missing='warn',
         converter=lambda x: MicrowaveMode[x.upper()])
 
-    clock_frequency = StatusVar('clock_frequency', 100)
+    clock_frequency = StatusVar('clock_frequency', 200) #changed by Hanyi Lu from 100 to 200 @2022.12.10
     cw_mw_frequency = StatusVar('cw_mw_frequency', 2870e6)
     cw_mw_power = StatusVar('cw_mw_power', -30)
     sweep_mw_power = StatusVar('sweep_mw_power', -30)
