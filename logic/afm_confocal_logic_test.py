@@ -393,7 +393,7 @@ class AFMConfocalLogic(GenericLogic):
     _fwhm_iso_b_frequency = StatusVar(default=10e6)
 
     # color scale/color map definition
-    _color_map = 'inferno'
+    _color_map = 'seismic'
 
     # acceptable object types for gwyddion
     _gwyobjecttypes = { 'imgobjects': ['qafm', 'obj', 'opti', 'afm'],

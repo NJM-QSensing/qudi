@@ -151,19 +151,19 @@ class ColorScaleGen(ColorScale):
         Supplied defnition of 'cmap_type', and 'cmap_name' correpsond to the 
         key and list item in colormaps definition (above)
     """
-    def __init__(self, cmap_name='inferno'):
+    def __init__(self, cmap_name='seismic'):
 
         self.log = logging.getLogger(__name__)
 
         if (cmap_name not in colormap_names) or (cmap_name not in _valid_colormap_names):
             self.log.error(f"Invalid color map name specified={cmap_name}, not found in colormap_names ={colormap_names}, using default='inferno'")
-            cmap_name = 'inferno'
+            cmap_name = 'seismic'
         
         colors = generate_linear_scale(cmap_name)
 
         if colors is None:
             self.log.error(f"Colormap = {cmap_name} has a ._segmentdata definition method which has not yet been implemented")
-            colors = generate_linear_scale('inferno')  # default to 'inferno' if such things happen
+            colors = generate_linear_scale('seismic')  # default to 'inferno' if such things happen
 
         cmap_arr = np.array(colors)
 

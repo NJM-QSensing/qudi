@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>410</width>
-    <height>469</height>
+    <height>561</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="Tab1">
       <property name="whatsThis">
@@ -56,31 +56,82 @@
         </layout>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
-         <item>
-          <widget class="QRadioButton" name="scan_dir_fw_RadioButton">
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Linewise scan, from left to right. &lt;br/&gt;When the scanner finalized its line, &lt;br/&gt;a new one will start from left &lt;br/&gt;(and &lt;span style=&quot; font-weight:600;&quot;&gt;not&lt;/span&gt; in a snake-wise fashion!)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-           <property name="text">
-            <string>Single Forward Scan</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="scan_dir_fw_bw_RadioButton">
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Scan forward starting from left and when line is completed, &lt;br/&gt;scan on the same way backwards. The two scans will appear&lt;br/&gt;as separate scans in the main window.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-           <property name="text">
-            <string>Forward-Backward Scan</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
+        <widget class="QGroupBox" name="groupBox_6">
+         <property name="title">
+          <string>ScanDirection_GroupBox</string>
+         </property>
+         <widget class="QWidget" name="">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>20</y>
+            <width>368</width>
+            <height>19</height>
+           </rect>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <item>
+            <widget class="QRadioButton" name="scan_dir_fw_RadioButton">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Linewise scan, from left to right. &lt;br/&gt;When the scanner finalized its line, &lt;br/&gt;a new one will start from left &lt;br/&gt;(and &lt;span style=&quot; font-weight:600;&quot;&gt;not&lt;/span&gt; in a snake-wise fashion!)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>Single Forward Scan</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QRadioButton" name="scan_dir_fw_bw_RadioButton">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Scan forward starting from left and when line is completed, &lt;br/&gt;scan on the same way backwards. The two scans will appear&lt;br/&gt;as separate scans in the main window.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>Forward-Backward Scan</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_7">
+         <property name="title">
+          <string>ESR_Type_Groupbox</string>
+         </property>
+         <widget class="QWidget" name="">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>20</y>
+            <width>368</width>
+            <height>19</height>
+           </rect>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_10">
+           <item>
+            <widget class="QRadioButton" name="cw_odmr_RadioButton">
+             <property name="text">
+              <string>CW ODMR</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QRadioButton" name="pulsed_odmr_RadioButton">
+             <property name="text">
+              <string>Pulsed ODMR</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
        </item>
        <item>
         <widget class="QGroupBox" name="groupBox">

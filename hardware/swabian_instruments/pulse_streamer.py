@@ -56,6 +56,7 @@ class PulseStreamer(Base, PulserInterface):
     _sync_in = ConfigOption('sync_in', 7, missing='warn')
     _mw_switch = ConfigOption('mw_switch', 2, missing='info')
     _mw_trig = ConfigOption('mw_trig', 3, missing='info')
+    _recorder_sync = ConfigOption('recorder_sync', 4, missing='warn')
 
     _use_external_clock = ConfigOption('use_external_clock', False, missing='info')
     _external_clock_option = ConfigOption('external_clock_option', 0, missing='info')

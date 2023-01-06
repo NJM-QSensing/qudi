@@ -94,6 +94,7 @@ class TimeTaggerCounter(Base, SlowCounterInterface, RecorderInterface):
     _pixelclock_begin_chn = ConfigOption('pixelclock_begin_chn', 2, missing='error')
     _pixelclock_click_chn = ConfigOption('pixelclock_click_chn', 1, missing='error')
     _pixelclock_end_chn = ConfigOption('pixelclock_end_chn', 3, missing='error')
+    _recorder_sync_chn = ConfigOption('recorder_sync_chn', 4, missing='warn')
     _recorder_constraints = RecorderConstraints()
 
     def on_activate(self):
@@ -106,6 +107,7 @@ class TimeTaggerCounter(Base, SlowCounterInterface, RecorderInterface):
         self._curr_state = RecorderState.UNLOCKED
         self._create_recorder_constraints()
         self.is_measurement_running = False
+        self.read_length = 300 # ns
 
         if self._sum_channels and self._channel_apd_1 is None:
             self.log.error('Cannot sum channels when only one apd channel given')
@@ -302,6 +304,12 @@ class TimeTaggerCounter(Base, SlowCounterInterface, RecorderInterface):
                                                         'count_frequency': 100,
                                                         'num_meas': 100}
 
+        # configure defaults for mode
+        rc.recorder_mode_params_defaults[HWRecorderMode.ESR] = {}     # no defaults
+
+        # configure measurement method
+        rc.recorder_mode_measurements[HWRecorderMode.ESR] = TimeTaggerMeasurementMode.ESR
+
         # feature set 3 = 'Continuous PULSED_ESR'
         rc.recorder_modes.append(HWRecorderMode.PULSED_ESR)
         
@@ -405,7 +413,7 @@ class TimeTaggerCounter(Base, SlowCounterInterface, RecorderInterface):
         elif mode == HWRecorderMode.ESR:
             ret_val = self._prepare_cw_esr(freq_list=params['mw_frequency_list'], 
                                           num_esr_runs=params['num_meas'])
-        elif mode == HWRecorderMode.ESR:
+        elif mode == HWRecorderMode.PULSED_ESR:
             ret_val = self._prepare_pulsed_esr(freq_list=params['mw_frequency_list'], 
                                           num_esr_runs=params['num_meas'])
 
@@ -445,9 +453,10 @@ class TimeTaggerCounter(Base, SlowCounterInterface, RecorderInterface):
             click_channel=self._channel_apd_0,
             start_channel=self._pixelclock_begin_chn,
             next_channel=self._pixelclock_end_chn,
-            binwidth=int(np.round(300 * 1000)),
+            sync_channel=self._recorder_sync_chn,
+            binwidth=int(np.round(self.read_length * 1000)),
             n_bins=1,
-            n_histograms=len(freq_list)*num_esr_runs)
+            n_histograms=len(freq_list))
 
         self.recorder = self.cbm_counter
         return 0
@@ -497,7 +506,7 @@ class TimeTaggerCounter(Base, SlowCounterInterface, RecorderInterface):
 
         # Esr, Pulsed (point methods)
         elif meas_type.movement == 'point':
-            if mode == HWRecorderMode.ESR:
+            if mode == HWRecorderMode.ESR or mode == HWRecorderMode.PULSED_ESR:
 
                 self.recorder.clear()
 
@@ -570,8 +579,11 @@ class TimeTaggerCounter(Base, SlowCounterInterface, RecorderInterface):
             data = self.recorder.getBinWidths().reshape(self._curr_meas_params['num_meas'], len(self._curr_meas_params['mw_frequency_list']))
             ret['int_time'] = data/1e12 # returns in ps
             ret['counts'] = np.divide(ret['counts'].astype(float), ret['int_time'])
-            
 
+        elif self._curr_mode == HWRecorderMode.PULSED_ESR:
+            data = self.recorder.getData().reshape(1, len(self._curr_meas_params['mw_frequency_list']))
+            ret['counts'] = data
+            
         # released
         self._curr_state = RecorderState.IDLE
         ret_list = [ret[i] for i in meas_keys]

@@ -176,7 +176,7 @@ class ProteusQGUI(GUIBase):
     _dockwidget_container = {}
 
     # status variables (will be saved at shutdown)
-    _color_map = StatusVar('color_map', default='inferno')  # possible saved color map config
+    _color_map = StatusVar('color_map', default='seismic')  # possible saved color map config
     _save_display_view = StatusVar('save_display_view', default=None) # It is a bytearray
     _obj_range_x_min = StatusVar('obj_range_x_min', default=0)  # in m
     _obj_range_x_max = StatusVar('obj_range_x_max', default=37e-6)  # in m
@@ -2513,6 +2513,12 @@ class ProteusQGUI(GUIBase):
         # check only one button, this is sufficient
         fw_scan = self._qm.scan_dir_fw_RadioButton.isChecked()
 
+        # Again, only one is sufficient to check
+        if self._qm.cw_odmr_RadioButton.isChecked():
+            odmr_type = "CW"
+        else:
+            odmr_type = "Pulsed"
+
         afm_int_time = self._qm.afm_int_time_DoubleSpinBox.value()
         idle_move_time = self._qm.idle_move_time_QDoubleSpinBox.value()
         esr_freq_start = self._qm.esr_freq_start_DoubleSpinBox.value()
@@ -2536,7 +2542,8 @@ class ProteusQGUI(GUIBase):
                 freq_points=esr_freq_num, esr_count_freq=esr_count_freq,
                 mw_power=esr_mw_power, num_esr_runs=esr_runs, 
                 optimize_period=optimize_period, meas_params=meas_params,
-                single_res=single_res, continue_meas=continue_meas)
+                single_res=single_res, continue_meas=continue_meas,
+                odmr_type=odmr_type)
 
         else:
 
