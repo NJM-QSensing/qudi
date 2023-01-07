@@ -559,7 +559,7 @@ class TimeTaggerCounter(Base, SlowCounterInterface, RecorderInterface):
         """
         ret = {'counts':None, 'int_time':None, 'counts2':None, 'counts_diff': None}
         
-        if self._curr_mode == HWRecorderMode.PIXELCLOCK or HWRecorderMode.PIXELCLOCK_SINGLE_ISO_B:
+        if self._curr_mode == HWRecorderMode.PIXELCLOCK or self._curr_mode == HWRecorderMode.PIXELCLOCK_SINGLE_ISO_B:
             while True:
                 if self.recorder.ready():
                     break
