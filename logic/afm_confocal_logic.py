@@ -2312,6 +2312,7 @@ class AFMConfocalLogic(GenericLogic):
                 
                 # obtain ESR measurement
                 esr_meas = self._counter.get_measurements()[0]
+                self.log.info(esr_meas)
 
                 esr_meas_mean = esr_meas.mean(axis=0)
                 esr_meas_std = esr_meas.std(axis=0)
@@ -2397,11 +2398,16 @@ class AFMConfocalLogic(GenericLogic):
             self.log.info(f'Line number {line_num} completed.')
             print(f'Line number {line_num} completed.')
 
+
+
             self.sigQAFMLineScanFinished.emit()   # this triggers repainting of the line
             self.sigQuantiLineFinished.emit()     # this signals line is complete, return to new line
 
             # store the current line number
             self._spm_line_num = line_num
+
+            self._spm.finish_scan()
+            time.sleep(1)
 
             if self._stop_request:
                 break
@@ -2435,7 +2441,7 @@ class AFMConfocalLogic(GenericLogic):
             #     time.sleep(2)
             #     self.sigHealthCheckStopSkip.emit()
 
-            self.log.info('Pass optimization.')
+            # self.log.info('Pass optimization.')
 
         stop_time_afm_scan = datetime.datetime.now()
         self._afm_meas_duration = self._afm_meas_duration + (

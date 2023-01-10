@@ -453,7 +453,7 @@ class TimeTaggerCounter(Base, SlowCounterInterface, RecorderInterface):
             click_channel=self._channel_apd_0,
             start_channel=self._pixelclock_begin_chn,
             next_channel=self._pixelclock_end_chn,
-            sync_channel=self._recorder_sync_chn,
+            # sync_channel=self._recorder_sync_chn,
             binwidth=int(np.round(self.read_length * 1000)),
             n_bins=1,
             n_histograms=len(freq_list))
