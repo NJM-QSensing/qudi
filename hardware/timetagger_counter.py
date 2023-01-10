@@ -91,6 +91,9 @@ class TimeTaggerCounter(Base, SlowCounterInterface, RecorderInterface):
     _channel_apd_0 = ConfigOption('timetagger_channel_apd_0', missing='error')
     _channel_apd_1 = ConfigOption('timetagger_channel_apd_1', None, missing='warn')
     _sum_channels = ConfigOption('timetagger_sum_channels', False)
+    _next_channel = ConfigOption('next_chn', 3, missing='error')
+    _start_channel = ConfigOption('start_chn', 2, missing='error')
+    _click_channel = ConfigOption('click_chn', 1, missing='error')
     _pixelclock_begin_chn = ConfigOption('pixelclock_begin_chn', 2, missing='error')
     _pixelclock_click_chn = ConfigOption('pixelclock_click_chn', 1, missing='error')
     _pixelclock_end_chn = ConfigOption('pixelclock_end_chn', 3, missing='error')
@@ -450,10 +453,10 @@ class TimeTaggerCounter(Base, SlowCounterInterface, RecorderInterface):
     def _prepare_pulsed_esr(self, freq_list, num_esr_runs):
         self.cbm_counter =  tt.TimeDifferences(
             tagger=self._tagger,
-            click_channel=self._channel_apd_0,
-            start_channel=self._pixelclock_begin_chn,
-            next_channel=self._pixelclock_end_chn,
-            # sync_channel=self._recorder_sync_chn,
+            click_channel=self._click_channel,
+            start_channel=self._start_channel,
+            next_channel=self._next_channel,
+            sync_channel=self._recorder_sync_chn,
             binwidth=int(np.round(self.read_length * 1000)),
             n_bins=1,
             n_histograms=len(freq_list))
