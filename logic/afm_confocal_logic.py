@@ -2312,7 +2312,6 @@ class AFMConfocalLogic(GenericLogic):
                 
                 # obtain ESR measurement
                 esr_meas = self._counter.get_measurements()[0]
-                self.log.info(esr_meas)
 
                 esr_meas_mean = esr_meas.mean(axis=0)
                 esr_meas_std = esr_meas.std(axis=0)
