@@ -4851,6 +4851,8 @@ class AFMConfocalLogic(GenericLogic):
 
         if timestamp is None:
             timestamp = datetime.datetime.now()
+    
+        esr_data = self.get_esr_data()  
 
         for entry in scan_params:
             parameters = {}
