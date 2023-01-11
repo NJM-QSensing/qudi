@@ -575,6 +575,9 @@ class TimeTaggerCounter(Base, SlowCounterInterface, RecorderInterface):
             ret['int_time'] = data/1e12 # returns in ps
         
         if self._curr_mode == HWRecorderMode.ESR:
+            while True:
+                if self.recorder.ready():
+                    break
             # ['counts', 'int_time', 'counts2', 'counts_diff']
             data = self.recorder.getData().reshape(self._curr_meas_params['num_meas'], len(self._curr_meas_params['mw_frequency_list']))
             ret['counts'] = data
