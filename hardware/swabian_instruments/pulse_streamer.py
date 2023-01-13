@@ -415,6 +415,14 @@ class PulseStreamer(Base, PulserInterface):
 
         return self.__current_status, status_dic
 
+    def forceFinal(self):
+        """ Forces the final state of the Pulse Streamer
+
+        @return int: error code (0:OK, -1:error)
+        """
+        self.pulse_streamer.forceFinal()
+        return
+
     
     def get_sample_rate(self):
         """ Get the sample rate of the pulse generator hardware

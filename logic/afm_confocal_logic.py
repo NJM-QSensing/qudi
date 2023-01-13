@@ -2181,6 +2181,8 @@ class AFMConfocalLogic(GenericLogic):
                 mode=HWRecorderMode.PULSED_ESR,
                 params={'mw_frequency_list': freq_list,
                         'num_meas': num_esr_runs } )
+
+            self._counter.setMaxCounts(num_esr_runs)
                     
         self._mw.set_list(freq_list, mw_power)
         if odmr_type == "CW":        
@@ -2188,7 +2190,7 @@ class AFMConfocalLogic(GenericLogic):
             self._pulser.pulser_on(trigger=True, n=1)
         else:
             self._pulser.load_swabian_sequence(self._make_pulse_sequence(HWRecorderMode.PULSED_ESR, 1/esr_count_freq, freq_points, num_esr_runs))
-            self._pulser.pulser_on(trigger=True, n=num_esr_runs)
+            self._pulser.pulser_on(trigger=True, n=-1)
 
         if ret_val < 0:
             self.sigQuantiScanFinished.emit()
@@ -2311,7 +2313,8 @@ class AFMConfocalLogic(GenericLogic):
                 self._scan_point[2:] = self._debug 
                 
                 # obtain ESR measurement
-                esr_meas = self._counter.get_measurements()[0]
+                esr_meas = self._counter.get_measurements()
+                self._pulser.forceFinal()
 
                 esr_meas_mean = esr_meas.mean(axis=0)
                 esr_meas_std = esr_meas.std(axis=0)
@@ -2412,35 +2415,35 @@ class AFMConfocalLogic(GenericLogic):
                 break
 
             # perform optimization always after line finishes
-            # if self.get_optimize_request():
+            if self.get_optimize_request():
 
-            #     self.log.info('Enter optimization.')
-            #     self.sigHealthCheckStartSkip.emit()
-            #     time.sleep(2)
+                self.log.info('Enter optimization.')
+                self.sigHealthCheckStartSkip.emit()
+                time.sleep(2)
 
-            #     self._counter.configure_recorder(mode=HWRecorderMode.PIXELCLOCK,
-            #                                      params={'mw_frequency': self._freq1_iso_b_frequency,
-            #                                              'num_meas': coord0_num})
-            #     self._spm.finish_scan()
+                self._counter.configure_recorder(mode=HWRecorderMode.PIXELCLOCK,
+                                                 params={'mw_frequency': self._freq1_iso_b_frequency,
+                                                         'num_meas': coord0_num})
+                self._spm.finish_scan()
 
-            #     time.sleep(1)
+                time.sleep(1)
 
-            #     self.default_optimize()
-            #     _, _, _ = self._spm.configure_scanner(mode=ScannerMode.PROBE_CONTACT,
-            #                                           params= {'line_points': coord0_num,
-            #                                                    'meas_params': meas_params},
-            #                                           scan_style=ScanStyle.LINE) 
+                self.default_optimize()
+                _, _, _ = self._spm.configure_scanner(mode=ScannerMode.PROBE_CONTACT,
+                                                      params= {'line_points': coord0_num,
+                                                               'meas_params': meas_params},
+                                                      scan_style=ScanStyle.LINE) 
 
-            #     self._counter.configure_recorder(
-            #         mode=HWRecorderMode.ESR,
-            #         params={'mw_frequency_list': freq_list,
-            #                 'mw_power': mw_power,
-            #                 'count_frequency': esr_count_freq,
-            #                 'num_meas': num_esr_runs } )
-            #     time.sleep(2)
-            #     self.sigHealthCheckStopSkip.emit()
+                self._counter.configure_recorder(
+                    mode=HWRecorderMode.ESR,
+                    params={'mw_frequency_list': freq_list,
+                            'mw_power': mw_power,
+                            'count_frequency': esr_count_freq,
+                            'num_meas': num_esr_runs } )
+                time.sleep(2)
+                self.sigHealthCheckStopSkip.emit()
 
-            # self.log.info('Pass optimization.')
+            self.log.info('Pass optimization.')
 
         stop_time_afm_scan = datetime.datetime.now()
         self._afm_meas_duration = self._afm_meas_duration + (
@@ -3945,7 +3948,6 @@ class AFMConfocalLogic(GenericLogic):
             seq = PulseSequence()
             
             block_1 = PulseBlock()
-            block_2 = PulseBlock()
 
             d_ch = clear(d_ch)
             d_ch[self._pulser._pixel_stop] = True
@@ -3969,14 +3971,7 @@ class AFMConfocalLogic(GenericLogic):
             d_ch[self._pulser._mw_trig] = True
             block_1.append(init_length = 1e-3, channels = d_ch, repetition = 1)
 
-            seq.append([(block_1, freq_points)])
-
-            d_ch = clear(d_ch)
-            d_ch[self._pulser._sync_in] = True
-            d_ch[self._pulser._recorder_sync] = True
-            block_2.append(init_length = 1000e-6, channels = d_ch, repetition = 1)
-
-            seq.append([(block_2, 1)])
+            seq.append([(block_1, 1)])
 
             pulse_dict = seq.pulse_dict
         

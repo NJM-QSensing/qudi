@@ -590,7 +590,7 @@ class TimeTaggerCounter(Base, SlowCounterInterface, RecorderInterface):
                 if self.recorder.ready():
                     break
             data = self.recorder.getData().reshape(1, len(self._curr_meas_params['mw_frequency_list']))
-            ret['counts'] = data
+            ret['counts'] = data[0][0]
             
         # released
         self._curr_state = RecorderState.IDLE
