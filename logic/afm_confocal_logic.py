@@ -2190,7 +2190,7 @@ class AFMConfocalLogic(GenericLogic):
             self._pulser.pulser_on(trigger=True, n=1)
         else:
             self._pulser.load_swabian_sequence(self._make_pulse_sequence(HWRecorderMode.PULSED_ESR, 1/esr_count_freq, freq_points, num_esr_runs))
-            self._pulser.pulser_on(trigger=True, n=-1)
+            self._pulser.pulser_on(trigger=True, n=-1,final=self._pulser._sync_state)
 
         if ret_val < 0:
             self.sigQuantiScanFinished.emit()
@@ -2313,7 +2313,7 @@ class AFMConfocalLogic(GenericLogic):
                 self._scan_point[2:] = self._debug 
                 
                 # obtain ESR measurement
-                esr_meas = self._counter.get_measurements()
+                esr_meas = self._counter.get_measurements()[0]
                 self._pulser.forceFinal()
 
                 esr_meas_mean = esr_meas.mean(axis=0)
@@ -2433,13 +2433,21 @@ class AFMConfocalLogic(GenericLogic):
                                                       params= {'line_points': coord0_num,
                                                                'meas_params': meas_params},
                                                       scan_style=ScanStyle.LINE) 
+                if odmr_type == "CW":
+                    self._counter.configure_recorder(
+                        mode=HWRecorderMode.ESR,
+                        params={'mw_frequency_list': freq_list,
+                                'mw_power': mw_power,
+                                'count_frequency': esr_count_freq,
+                                'num_meas': num_esr_runs } )
 
-                self._counter.configure_recorder(
-                    mode=HWRecorderMode.ESR,
-                    params={'mw_frequency_list': freq_list,
-                            'mw_power': mw_power,
-                            'count_frequency': esr_count_freq,
-                            'num_meas': num_esr_runs } )
+                else:
+                    self._counter.configure_recorder(
+                        mode=HWRecorderMode.PULSED_ESR,
+                        params={'mw_frequency_list': freq_list,
+                                'mw_power': mw_power,
+                                'count_frequency': esr_count_freq,
+                                'num_meas': num_esr_runs } )
                 time.sleep(2)
                 self.sigHealthCheckStopSkip.emit()
 

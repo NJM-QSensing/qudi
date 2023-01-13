@@ -186,7 +186,7 @@ class ODMRCounterInterfuse(GenericLogic, ODMRCounterInterface):
         self._sc_device.recorder.setMaxCounts(3)
         
         self._pulser.pulser_on() # needs debugging: TT must be missing trigger signals
-        counts = self._sc_device.get_measurements(['counts'])
+        counts = self._sc_device.get_measurements(['counts'])[0]
         self._pulser.pulser_off()
         
         time.sleep(5e-3)
