@@ -76,6 +76,7 @@ class PulseStreamer(Base, PulserInterface):
         self._trigger = ps.TriggerStart.SOFTWARE
         self._laser_mw_on_state = ps.OutputState([self._laser_channel, self._mw_switch], 0, 0)
         self._mw_trig_sync_state = ps.OutputState([self._mw_trig, self._recorder_sync], 0, 0)
+        self._sync_state = ps.OutputState([self._recorder_sync], 0, 0)
 
     def on_activate(self):
         """ Establish connection to pulse streamer and tell it to cancel all operations """

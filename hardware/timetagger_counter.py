@@ -456,7 +456,6 @@ class TimeTaggerCounter(Base, SlowCounterInterface, RecorderInterface):
             click_channel=self._click_channel,
             start_channel=self._start_channel,
             next_channel=self._next_channel,
-            sync_channel=self._recorder_sync_chn,
             binwidth=int(np.round(self.read_length * 1000)),
             n_bins=1,
             n_histograms=len(freq_list))
@@ -587,6 +586,9 @@ class TimeTaggerCounter(Base, SlowCounterInterface, RecorderInterface):
             ret['counts'] = np.divide(ret['counts'].astype(float), ret['int_time'])
 
         elif self._curr_mode == HWRecorderMode.PULSED_ESR:
+            while True:
+                if self.recorder.ready():
+                    break
             data = self.recorder.getData().reshape(1, len(self._curr_meas_params['mw_frequency_list']))
             ret['counts'] = data
             
