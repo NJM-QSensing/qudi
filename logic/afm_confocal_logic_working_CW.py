@@ -520,11 +520,6 @@ class AFMConfocalLogic(GenericLogic):
 
     sigSettingsUpdated = QtCore.Signal()
 
-    # Pulsed ESR settings
-    _pi_pulse = 80e-9 # s
-    _laser_length = 3e-6 # s
-    _delay_length = 700e-9 # s
-
     def __init__(self, config, **kwargs):
         """ Create CounterLogic object with connectors.
 
@@ -2124,8 +2119,7 @@ class AFMConfocalLogic(GenericLogic):
                                              optimize_period=100,
                                              meas_params=['Height(Dac)'],
                                              single_res=True,
-                                             continue_meas=False,
-                                             odmr_type="CW"):
+                                             continue_meas=False):
 
         """ QAFM measurement (optical + afm) snake movement for a scan by point.
 
@@ -2171,26 +2165,15 @@ class AFMConfocalLogic(GenericLogic):
         # make the counter for esr ready
         freq_list = np.linspace(freq_start, freq_stop, freq_points, endpoint=True)
         
-        if odmr_type == "CW":
-            ret_val = self._counter.configure_recorder(
-                mode=HWRecorderMode.ESR,
-                params={'mw_frequency_list': freq_list,
-                        'num_meas': num_esr_runs } )
-        else:
-            ret_val = self._counter.configure_recorder(
-                mode=HWRecorderMode.PULSED_ESR,
-                params={'mw_frequency_list': freq_list,
-                        'num_meas': num_esr_runs } )
-
-            self._counter.recorder.setMaxCounts(num_esr_runs)
+        ret_val = self._counter.configure_recorder(
+            mode=HWRecorderMode.ESR,
+            params={'mw_frequency_list': freq_list,
+                    'num_meas': num_esr_runs } )
                     
         self._mw.set_list(freq_list, mw_power)
-        if odmr_type == "CW":        
-            self._pulser.load_swabian_sequence(self._make_pulse_sequence(HWRecorderMode.ESR, 1/esr_count_freq, freq_points, num_esr_runs))
-            self._pulser.pulser_on(trigger=True, n=1)
-        else:
-            self._pulser.load_swabian_sequence(self._make_pulse_sequence(HWRecorderMode.PULSED_ESR, 1/esr_count_freq, freq_points, num_esr_runs))
-            self._pulser.pulser_on(trigger=True, n=-1)
+                
+        self._pulser.load_swabian_sequence(self._make_pulse_sequence(HWRecorderMode.ESR, 1/esr_count_freq, freq_points, num_esr_runs))
+        self._pulser.pulser_on(trigger=True, n=1)
 
         if ret_val < 0:
             self.sigQuantiScanFinished.emit()
@@ -2310,15 +2293,10 @@ class AFMConfocalLogic(GenericLogic):
                 self._counter.start_recorder(arm=True)
 
                 self._debug = self._spm.scan_point()
-
                 self._scan_point[2:] = self._debug 
                 
                 # obtain ESR measurement
                 esr_meas = self._counter.get_measurements()[0]
-                
-                if odmr_type == "Pulsed":
-                    self._pulser.constant_sync()
-                    self._pulser.pulser_on(trigger=True, n=-1)
 
                 esr_meas_mean = esr_meas.mean(axis=0)
                 esr_meas_std = esr_meas.std(axis=0)
@@ -2404,15 +2382,11 @@ class AFMConfocalLogic(GenericLogic):
             self.log.info(f'Line number {line_num} completed.')
             print(f'Line number {line_num} completed.')
 
-
-
             self.sigQAFMLineScanFinished.emit()   # this triggers repainting of the line
             self.sigQuantiLineFinished.emit()     # this signals line is complete, return to new line
 
             # store the current line number
             self._spm_line_num = line_num
-
-
 
             if self._stop_request:
                 break
@@ -2436,23 +2410,13 @@ class AFMConfocalLogic(GenericLogic):
                                                       params= {'line_points': coord0_num,
                                                                'meas_params': meas_params},
                                                       scan_style=ScanStyle.LINE) 
-                if odmr_type == "CW":
-                    self._counter.configure_recorder(
-                        mode=HWRecorderMode.ESR,
-                        params={'mw_frequency_list': freq_list,
-                                'mw_power': mw_power,
-                                'count_frequency': esr_count_freq,
-                                'num_meas': num_esr_runs } )
 
-                else:
-                    self._counter.configure_recorder(
-                        mode=HWRecorderMode.PULSED_ESR,
-                        params={'mw_frequency_list': freq_list,
-                                'mw_power': mw_power,
-                                'count_frequency': esr_count_freq,
-                                'num_meas': num_esr_runs } )
-                    self._counter.recorder.setMaxCounts(num_esr_runs)
-                
+                self._counter.configure_recorder(
+                    mode=HWRecorderMode.ESR,
+                    params={'mw_frequency_list': freq_list,
+                            'mw_power': mw_power,
+                            'count_frequency': esr_count_freq,
+                            'num_meas': num_esr_runs } )
                 time.sleep(2)
                 self.sigHealthCheckStopSkip.emit()
 
@@ -2490,8 +2454,7 @@ class AFMConfocalLogic(GenericLogic):
                                                    optimize_period=100,
                                                    meas_params=['Height(Dac)'],
                                                    single_res=True,
-                                                   continue_meas=False,
-                                                   odmr_type="CW"):
+                                                   continue_meas=False):
 
         if self.check_thread_active():
             self.log.error("A measurement is currently running, stop it first!")
@@ -2524,8 +2487,7 @@ class AFMConfocalLogic(GenericLogic):
                                                      optimize_period,
                                                      meas_params,
                                                      single_res,
-                                                     continue_meas,
-                                                     odmr_type),
+                                                     continue_meas),
                                                name='qanti_thread')
             self.threadpool.start(self._worker_thread)
 
@@ -2540,8 +2502,7 @@ class AFMConfocalLogic(GenericLogic):
                                                    optimize_period,
                                                    meas_params,
                                                    single_res,
-                                                   continue_meas,
-                                                   odmr_type)
+                                                   continue_meas)
 
 # ==============================================================================
 #             forward and backward QAFM (optical + afm) scan
@@ -3951,40 +3912,6 @@ class AFMConfocalLogic(GenericLogic):
             block_2.append(init_length = 1000e-6, channels = d_ch, repetition = 1)
 
             seq.append([(block_2, 1)])
-
-            pulse_dict = seq.pulse_dict
-
-        elif mode == HWRecorderMode.PULSED_ESR:
-
-            seq_repetitions = np.floor(int_time / (self._pi_pulse + self._laser_length + self._delay_length)).astype(int)
-
-            seq = PulseSequence()
-            
-            block_1 = PulseBlock()
-
-            d_ch = clear(d_ch)
-            d_ch[self._pulser._pixel_stop] = True
-            block_1.append(init_length = 1e-3, channels = d_ch, repetition = 1)
-
-            d_ch1 = clear(d_ch)
-            d_ch1[self._pulser._laser_channel] = True
-            d_ch1[self._pulser._pixel_start] = True
-
-            d_ch2 = clear(d_ch)
-
-            d_ch3 = clear(d_ch)
-            d_ch3[self._pulser._mw_switch] = True
-
-            for rep in range(seq_repetitions):
-                block_1.append(init_length = self._laser_length, channels = d_ch1, repetition = 1)
-                block_1.append(init_length = self._delay_length, channels = d_ch2, repetition = 1)
-                block_1.append(init_length = self._pi_pulse, channels = d_ch3, repetition = 1)
-
-            d_ch = clear(d_ch)
-            d_ch[self._pulser._mw_trig] = True
-            block_1.append(init_length = 1e-3, channels = d_ch, repetition = 1)
-
-            seq.append([(block_1, 1)])
 
             pulse_dict = seq.pulse_dict
         
