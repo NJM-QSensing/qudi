@@ -2187,10 +2187,10 @@ class AFMConfocalLogic(GenericLogic):
         self._mw.set_list(freq_list, mw_power)
         if odmr_type == "CW":        
             self._pulser.load_swabian_sequence(self._make_pulse_sequence(HWRecorderMode.ESR, 1/esr_count_freq, freq_points, num_esr_runs))
-            self._pulser.pulser_on(trigger=True, n=1)
+            self._pulser.pulser_on(trigger=True, n=1,rearm=True)
         else:
             self._pulser.load_swabian_sequence(self._make_pulse_sequence(HWRecorderMode.PULSED_ESR, 1/esr_count_freq, freq_points, num_esr_runs))
-            self._pulser.pulser_on(trigger=True, n=-1,final=self._pulser._sync_state)
+            self._pulser.pulser_on(trigger=True, n=-1,final=self._pulser._sync_state,rearm=True)
 
         if ret_val < 0:
             self.sigQuantiScanFinished.emit()
@@ -2310,11 +2310,13 @@ class AFMConfocalLogic(GenericLogic):
                 self._counter.start_recorder(arm=True)
 
                 self._debug = self._spm.scan_point()
+
                 self._scan_point[2:] = self._debug 
                 
                 # obtain ESR measurement
                 esr_meas = self._counter.get_measurements()[0]
-                self._pulser.forceFinal()
+                self._pulser.constant_sync()
+                self._pulser.rearm()
 
                 esr_meas_mean = esr_meas.mean(axis=0)
                 esr_meas_std = esr_meas.std(axis=0)

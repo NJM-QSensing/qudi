@@ -279,7 +279,16 @@ class PulseStreamer(Base, PulserInterface):
 
         @return int: error code (0:OK, -1:error)
         """
-        self.pulse_streamer.constant(ps.OutputState([self._recorder_sync],0,0))
+        self.pulse_streamer.constant(ps.OutputState([self._sync_in],0,0))
+
+        return 0
+
+    def rearm(self):
+        """ Rearms the pulse Streamer manually
+
+        @return int: error code (0:OK, -1:error)
+        """
+        self.pulse_streamer.rearm()
 
         return 0
         
