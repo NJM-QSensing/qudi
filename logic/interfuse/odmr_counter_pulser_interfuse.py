@@ -165,7 +165,7 @@ class ODMRCounterInterfuse(GenericLogic, ODMRCounterInterface):
         """
         self._sc_device.start_recorder()
         
-        self._pulser.pulser_on(n=length+5) # needs debugging: TT must be missing trigger signals
+        self._pulser.pulser_on(n=length+10) # needs debugging: TT must be missing trigger signals
         counts = self._sc_device.get_measurements(['counts'])
     
         return False, counts[0]
