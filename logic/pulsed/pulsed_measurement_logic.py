@@ -37,7 +37,6 @@ from core.util.math import compute_ft
 from logic.generic_logic import GenericLogic
 from logic.pulsed.pulse_extractor import PulseExtractor
 from logic.pulsed.pulse_analyzer import PulseAnalyzer
-import pulsestreamer as ps
 
 class PulsedMeasurementLogic(GenericLogic):
     """
