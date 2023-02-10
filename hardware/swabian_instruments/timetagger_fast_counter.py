@@ -166,6 +166,7 @@ class TimeTaggerFastCounter(Base, FastCounterInterface):
         self.module_state.lock()
         self.pulsed.clear()
         self.pulsed.start()
+        self._tagger.sync()
         self.statusvar = 2
         return 0
 
@@ -194,6 +195,7 @@ class TimeTaggerFastCounter(Base, FastCounterInterface):
         """
         if self.module_state() == 'locked':
             self.pulsed.start()
+            self._tagger.sync()
             self.statusvar = 2
         return 0
 
@@ -217,8 +219,8 @@ class TimeTaggerFastCounter(Base, FastCounterInterface):
         care of in this hardware class. A possible overflow of the histogram
         bins must be caught here and taken care of.
         """
-        info_dict = {'elapsed_sweeps': None,
-                     'elapsed_time': None}  # TODO : implement that according to hardware capabilities
+        info_dict = {'elapsed_sweeps': self.pulsed.getCounts(),
+                     'elapsed_time': None}  
         return np.array(self.pulsed.getData(), dtype='int64'), info_dict
 
 
@@ -238,4 +240,3 @@ class TimeTaggerFastCounter(Base, FastCounterInterface):
         """ Returns the width of a single timebin in the timetrace in seconds. """
         width_in_seconds = self._bin_width * 1e-9
         return width_in_seconds
-
