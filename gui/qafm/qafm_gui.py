@@ -132,7 +132,7 @@ class CustomCheckBox(QtWidgets.QCheckBox):
         self.valueChanged_custom.emit(bool(state), self.objectName())
 
 
-class ProteusQMainWindow(QtWidgets.QMainWindow):
+class attoDRY2200MainWindow(QtWidgets.QMainWindow):
     """ Create the Main Window based on the *.ui file. """
 
     def __init__(self):
@@ -145,17 +145,19 @@ class ProteusQMainWindow(QtWidgets.QMainWindow):
         uic.loadUi(ui_file, self)
         self.show()
 
-class ProteusQGUI(GUIBase):
+class attoDRY2200GUI(GUIBase):
     """ GUI to control the ProteusQ. """
     
-    _modclass = 'AttoDRY2200_Pi3_GUI'
+    _modclass = 'attoDRY2200_GUI'
     _modtype = 'gui'
 
     _LabQversion = 'x.x'      #dynmically assigned
-    __version__ = '0.2.5'
+    __version__ = 'x.x.x'
 
     ## declare connectors
     qafmlogic = Connector(interface='AFMConfocalLogic') # interface='AFMConfocalLogic'
+
+    # measurementlogic = Connector(interface='MeasurementMasterLogic') # Handles the details of the NV measurement side (to be written)
 
     sigGotoObjpos = QtCore.Signal(dict)
     sigGotoAFMpos = QtCore.Signal(dict)
@@ -414,7 +416,7 @@ class ProteusQGUI(GUIBase):
         *.ui file and configures the event handling between the modules.
         Moreover it sets default values.
         """
-        self._mw = ProteusQMainWindow()
+        self._mw = attoDRY2200MainWindow()
         self.restoreWindowPos(self._mw)
 
         ###################################################################
@@ -435,6 +437,8 @@ class ProteusQGUI(GUIBase):
 
         self._initialize_inputs()
         self._arrange_iso_dockwidget()
+        self.default_view()
+        self._set_dock_visibility()
 
 
     def initSettingsUI(self):
@@ -669,7 +673,7 @@ class ProteusQGUI(GUIBase):
         self._mw.optimizer_request_autorun_CheckBox.setChecked(self._periodic_opti_autorun)
 
         # optimizer request is initially not shown
-        self.enable_optimizer_request(False)   
+        self.enable_optimizer_request(True)   
         
 
     def show_optimizer_request_groupBox(self):
@@ -1636,6 +1640,13 @@ class ProteusQGUI(GUIBase):
             grid.addWidget(radioButton_cb_per,    6, 1, 1, 1) # start [6,1], span 1 rows down, 1 column wide
             grid.addWidget(checkBox_tilt_corr,    7, 0, 1, 1) # start [7,0], span 1 rows down, 1 column wide
 
+    def _set_dock_visibility(self):
+        """ Sets the default Dock visibility on opening GUI"""
+        
+        self._mw.dockWidget_afm.setVisible(self._mw.actionAFM_Parameters.isChecked())
+        self._mw.dockWidget_optimizer.setVisible(self._mw.actionOptimizer.isChecked())
+        self._mw.dockWidget_objective.setVisible(self._mw.actionObjective_Parameters.isChecked())
+        self._mw.dockWidget_isob.setVisible(self._mw.actionIso_B_Parameters.isChecked())
 
     def _create_meas_params(self):
         """ Generate CheckBoxes to control which AFM parameters are to be measured."""
@@ -1734,13 +1745,16 @@ class ProteusQGUI(GUIBase):
         for key, item in reversed(list(self._dockwidget_container.items())):
 
             if 'opti_xy' in key:
-                self._mw.splitDockWidget(self._mw.dockWidget_objective,
+                self._mw.splitDockWidget(self._mw.dockWidget_optimizer,
                                          item,
                                          QtCore.Qt.Orientation(2))
+                self._mw.actionOptimizer.toggled.connect(item.setVisible)
+
             if 'opti_z' in key:
-                self._mw.splitDockWidget(self._mw.dockWidget_objective,
+                self._mw.splitDockWidget(self._mw.dockWidget_optimizer,
                                          item,
                                          QtCore.Qt.Orientation(2))
+                self._mw.actionOptimizer.toggled.connect(item.setVisible)
 
         self._dock_state = 'double'
 

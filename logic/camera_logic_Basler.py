@@ -21,7 +21,6 @@ top-level directory of this distribution and at <https://github.com/Ulm-IQO/qudi
 """
 
 import numpy as np
-import time
 
 from core.connector import Connector
 from core.configoption import ConfigOption
@@ -30,6 +29,7 @@ from logic.generic_logic import GenericLogic
 from qtpy import QtCore
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+from PIL import Image
 
 import datetime
 from collections import OrderedDict
@@ -50,9 +50,9 @@ class CameraLogic(GenericLogic):
     sigUpdateDisplay = QtCore.Signal()
     sigAcquisitionFinished = QtCore.Signal()
     sigVideoFinished = QtCore.Signal()
+    sigROISet = QtCore.Signal(dict)
     timer = None
-    sigCountNextData = QtCore.Signal() #Signal to run next loop
-    
+
     enabled = False
 
     _exposure = 1.
@@ -79,37 +79,82 @@ class CameraLogic(GenericLogic):
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(self.loop)
 
-        self.stopRequested = False
-
-        self.sigCountNextData.connect(self.loop,QtCore.Qt.QueuedConnection)
-
+        self.prev_roi = (0, 0)
 
     def on_deactivate(self):
         """ Perform required deactivation. """
-        pass
+        self._hardware.on_deactivate()
+
+    def get_sensor(self):
+        '''Returns the sensor size which is independent of the ROI.
+        @return tuple: (sensor width, sensor height) ~ (1200, 1200)
+        '''
+        return self._hardware._get_detector()
+
+    def get_size(self):
+        '''Returns the image size which is dependant on the size of the ROI. Default ROI is the sensor size.
+        @return tuple: (ROI width, ROI height)
+        '''
+        return self._hardware.get_size()
+    
+    def set_image_roi(self, data):
+        '''Sets the ROI in the image. This selection of ROI is done in the GUI. A single rectangular ROI
+        is currently implemented. The Prime95B does allow for multiple rectangulare ROIs which is a possible
+        future addition. The cam.roi instance takes (x_start, x_end, y_start, y_end) with all in ints.
+        The GUI has a snap the ROI to pixels feature which also makes sure only int values are passed into the dict.
+
+        @param dict: {'pos': the coord. of the bottom left corner of the ROI,
+                    'size': the size of the ROI as tuple, i.e, size + pos gives coord. of top-right corner of ROI}
+        '''
+        pos = data['pos']
+        size = data['size']
+        x1, y1 = (*pos,)
+        x2, y2 = (*size,)
+        if not size==(self.get_sensor()):
+            self.prev_roi = tuple(map(sum, zip(self.prev_roi, (x1, y1))))
+            x1, y1 = self.prev_roi
+        else:
+            self.prev_roi = (0, 0)
+        self._hardware.cam.roi = tuple(int(el)
+                                       for el in (x1, x2 + x1, y1, y2 + y1))
 
     def set_exposure(self, time):
         """ Set exposure of hardware """
+        if self.enabled:
+            self.enabled = False
         self._hardware.set_exposure(time)
         self.get_exposure()
 
     def get_exposure(self):
         """ Get exposure of hardware """
         self._exposure = self._hardware.get_exposure()
-        self._fps = min(1 / self._exposure, self._max_fps)
+
+        self._fps = min(1 / self._exposure * 1000, self._max_fps)
         return self._exposure
 
+    def set_exposure_resolution(self, index):
+        return self._hardware.set_exp_res(index)
+    
+    def get_exposure_resolution(self):
+        return self._hardware.get_exp_res()
+
     def set_gain(self, gain):
+        '''Sets the gain of camera. Changes the camera class variable basically. Max values is 1 for 16bit and
+        1,2,3 for 12bit. Default is 16bit.
+        @param int: gain
+        '''
         self._hardware.set_gain(gain)
 
     def get_gain(self):
+        '''Returns the gain values from the camera class instance.
+        @return int: gain
+        '''
         gain = self._hardware.get_gain()
         self._gain = gain
         return gain
 
     def start_single_acquistion(self):
-        """
-
+        """Does a single image acquisitiong ans updates the _last_image variable as well as the display.
         """
         self._hardware.start_single_acquisition()
         self._last_image = self._hardware.get_acquired_data()
@@ -118,68 +163,56 @@ class CameraLogic(GenericLogic):
 
     def start_loop(self):
         """ Start the data recording loop.
+        The loop delay was flawed in the original logic code wherein the delay was dependant on the exp_time.
+        Here a minmum delay of 100ms is set so as to allow the GUI enough time to update the display. A very
+        short delay or none at all will cause the GUI tp freeze.
         """
         self.enabled = True
-        self.stopRequested = False
+        self.timer.start(1/self._fps*1000)
 
-        self.timer.start(1000*1/self._fps)
-
-        # if self._hardware.support_live_acquisition():
-        #     self._hardware.start_live_acquisition()
-        # else:
-        #     self._hardware.start_single_acquisition()
-
-        self.sigCountNextData.emit()
+        if self._hardware.support_live_acquisition():
+            self._hardware.start_live_acquisition()
+        else:
+            self._hardware.start_single_acquisition()
 
     def stop_loop(self):
         """ Stop the data recording loop.
         """
-        with self.threadlock:
-            self.timer.stop()
-            self.enabled = False
-            self._hardware.stop_acquisition()
-            self.sigVideoFinished.emit()
-            self.stopRequested = True
-
+        self.timer.stop()
+        self.enabled = False
+        self._hardware.stop_acquisition()
+        self.sigVideoFinished.emit()
 
     def loop(self):
         """ Execute step in the data recording loop: save one of each control and process values
         """
-        # self._last_image = self._hardware.get_acquired_data()
-        # self.sigUpdateDisplay.emit()
-        # if self.enabled:
-        #     self.timer.start(1000 * 1 / self._fps)
-        #     if not self._hardware.support_live_acquisition():
-        #         self._hardware.start_single_acquisition()  # the hardware has to check it's not busy
-
-        with self.threadlock:
-
-            if self.stopRequested:
-                print('stop requested')
-            
-            if self._hardware.support_live_acquisition():
-                self._hardware.start_live_acquisition()
-            else:
+        self._last_image = self._hardware.get_acquired_data()
+        self.sigUpdateDisplay.emit()
+        if self.enabled:
+            self.timer.start(1 / self._fps*1000)
+            if not self._hardware.support_live_acquisition():
+                # the hardware has to check it's not busy
                 self._hardware.start_single_acquisition()
-
-            self._last_image = self._hardware.get_acquired_data()
-            self.sigUpdateDisplay.emit()
-
-            # if self.enabled:
-            #     self.timer.start(1000 * 1 / self._fps)
-            #     if not self._hardware.support_live_acquisition():
-            #         self._hardware.start_single_acquisition()  # the hardware has to check it's not busy
-            
-        # Call this method again  
-        if self.stopRequested == False:
-            time.sleep(0.1)
-            self.sigCountNextData.emit()
-        return
-
 
     def get_last_image(self):
         """ Return last acquired image """
         return self._last_image
+
+    def set_trigger_seq(self, mode):
+        """Used to set camera to edge trigger for all frames in a sequence.
+        For applying the exposure mode.
+
+        @param str: mode
+        """
+        self.enabled = False
+        self._hardware.stop_acquisition()
+        self._hardware.set_exposure_mode(mode)
+
+    def start_trigger_seq(self, num_frames):
+        """Start the sequnce of frame collection. Used currently to collect frames after setting the edge trigger
+        exp. mode.
+        """
+        self._last_image = self._hardware.get_sequence(num_frames)
 
     def save_xy_data(self, colorscale_range=None, percentile_range=None):
         """ Save the current confocal xy data to file.
@@ -217,7 +250,6 @@ class CameraLogic(GenericLogic):
                                cbar_range=colorscale_range,
                                percentile_range=percentile_range)
 
-
         # data for the text-array "image":
         image_data = OrderedDict()
         image_data['XY image data.'] = self._last_image
@@ -230,28 +262,20 @@ class CameraLogic(GenericLogic):
                                    fmt='%.6e',
                                    delimiter='\t',
                                    plotfig=fig)
+        out = Image.fromarray(self._last_image)
+        out.save(filepath+'/'+timestamp.strftime("%Y%m%d-%H%M-%S")+'_'+filelabel+'.tiff')
 
-        # prepare the full raw data in an OrderedDict:
-        # data = OrderedDict()
-        # data['x position (m)'] = self.xy_image[:, :, 0].flatten()
-        # data['y position (m)'] = self.xy_image[:, :, 1].flatten()
-        # data['z position (m)'] = self.xy_image[:, :, 2].flatten()
-        #
-        #
-        # # Save the raw data to file
-        # filelabel = 'xy_image_data'
-        # self._save_logic.save_data(data,
-        #                            filepath=filepath,
-        #                            timestamp=timestamp,
-        #                            parameters=parameters,
-        #                            filelabel=filelabel,
-        #                            fmt='%.6e',cc
-        #                            delimiter='\t')
-
-        self.log.debug('Image saved.')
+        self.log.info('Image saved.')
         return
 
-    def draw_figure(self, data, image_extent, scan_axis=None, cbar_range=None, percentile_range=None,  crosshair_pos=None):
+    def draw_figure(
+            self,
+            data,
+            image_extent,
+            scan_axis=None,
+            cbar_range=None,
+            percentile_range=None,
+            crosshair_pos=None):
         """ Create a 2-D color map figure of the scan image.
 
         @param: array data: The NxM array of count values from a scan with NxM pixels.
@@ -284,19 +308,18 @@ class CameraLogic(GenericLogic):
         image_dimension = image_extent.copy()
 
         while draw_cb_range[1] > 1000:
-            image_data = image_data/1000
-            draw_cb_range = draw_cb_range/1000
+            image_data = image_data / 1000
+            draw_cb_range = draw_cb_range / 1000
             prefix_count = prefix_count + 1
 
         c_prefix = prefix[prefix_count]
-
 
         # Scale axes values using SI prefix
         axes_prefix = ['', 'm', r'$\mathrm{\mu}$', 'n']
         x_prefix_count = 0
         y_prefix_count = 0
 
-        while np.abs(image_dimension[1]-image_dimension[0]) < 1:
+        while np.abs(image_dimension[1] - image_dimension[0]) < 1:
             image_dimension[0] = image_dimension[0] * 1000.
             image_dimension[1] = image_dimension[1] * 1000.
             x_prefix_count = x_prefix_count + 1
@@ -317,7 +340,8 @@ class CameraLogic(GenericLogic):
 
         # Create image plot
         cfimage = ax.imshow(image_data,
-                            cmap=plt.get_cmap('inferno'), # reference the right place in qd
+                            # reference the right place in qd
+                            cmap=plt.get_cmap('inferno'),
                             origin="lower",
                             vmin=draw_cb_range[0],
                             vmax=draw_cb_range[1],
@@ -345,18 +369,33 @@ class CameraLogic(GenericLogic):
                 ax.transAxes,
                 ax.transData)
 
-            ax.annotate('', xy=(crosshair_pos[0]*np.power(1000,x_prefix_count), 0),
-                        xytext=(crosshair_pos[0]*np.power(1000,x_prefix_count), -0.01), xycoords=trans_xmark,
-                        arrowprops=dict(facecolor='#17becf', shrink=0.05),
+            ax.annotate('',
+                        xy=(crosshair_pos[0] * np.power(1000,
+                                                        x_prefix_count),
+                            0),
+                        xytext=(crosshair_pos[0] * np.power(1000,
+                                                            x_prefix_count),
+                                -0.01),
+                        xycoords=trans_xmark,
+                        arrowprops=dict(facecolor='#17becf',
+                                        shrink=0.05),
                         )
 
-            ax.annotate('', xy=(0, crosshair_pos[1]*np.power(1000,y_prefix_count)),
-                        xytext=(-0.01, crosshair_pos[1]*np.power(1000,y_prefix_count)), xycoords=trans_ymark,
-                        arrowprops=dict(facecolor='#17becf', shrink=0.05),
+            ax.annotate('',
+                        xy=(0,
+                            crosshair_pos[1] * np.power(1000,
+                                                        y_prefix_count)),
+                        xytext=(-0.01,
+                                crosshair_pos[1] * np.power(1000,
+                                                            y_prefix_count)),
+                        xycoords=trans_ymark,
+                        arrowprops=dict(facecolor='#17becf',
+                                        shrink=0.05),
                         )
 
         # Draw the colorbar
-        cbar = plt.colorbar(cfimage, shrink=0.8)#, fraction=0.046, pad=0.08, shrink=0.75)
+        # , fraction=0.046, pad=0.08, shrink=0.75)
+        cbar = plt.colorbar(cfimage, shrink=0.8)
         cbar.set_label('Fluorescence (' + c_prefix + 'c/s)')
 
         # remove ticks from colorbar for cleaner image
@@ -386,4 +425,3 @@ class CameraLogic(GenericLogic):
                              rotation=90
                              )
         return fig
-

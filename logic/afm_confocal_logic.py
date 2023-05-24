@@ -501,7 +501,7 @@ class AFMConfocalLogic(GenericLogic):
     _optimize_request = False
 
     # iso-b settings
-    _sg_iso_b_operation = False    # indicate whether iso-b is on
+    _sg_iso_b_operation = StatusVar(default=False)    # indicate whether iso-b is on
     _sg_iso_b_single_mode = StatusVar(default=True)  # default mode is single iso-B 
     _sg_iso_b_single_mode = StatusVar(default=True)  # default mode is single iso-B 
     _sg_iso_b_autocalibrate_margin = StatusVar(default=True)  # default is autocalibrate

@@ -303,7 +303,7 @@ class MicrowaveSMB100B(Base, MicrowaveInterface):
             dummy, is_running = self.get_status()
         return 0
 
-    def set_list(self, frequency=None, power=None):
+    def set_list(self, frequency=None, power=None, list_mode="STEP", source="EXT"):
         """
         Configures the device for list-mode and optionally sets frequencies and/or power
 
@@ -346,8 +346,8 @@ class MicrowaveSMB100B(Base, MicrowaveInterface):
 
             self._command_wait(':LIST:POW' + s)
 
-        self._command_wait(':LIST:MODE STEP')
-        self._command_wait(':TRIG1:LIST:SOUR EXT')
+        self._command_wait(':LIST:MODE {}'.format(list_mode))
+        self._command_wait(':TRIG1:LIST:SOUR {}'.format(source))
         #FIXME: figure out how to set list mode without turning power on (maybe unnecessary)
         # Also get frequency from device, instead of assuming things went well.
         # Perhaps: actual_frequencies = self.query(':LIST:FREQ?')
@@ -472,8 +472,7 @@ class MicrowaveSMB100B(Base, MicrowaveInterface):
 
         @return int: error code (0:OK, -1:error)
         """
-        self._connection.write(':TRIGger:IMMediate')
-        time.sleep(self._FREQ_SWITCH_SPEED)
+        self._connection.write(':LIST:TRIGger:EXECute')
         return 0
 
     def set_cw_sweep(self, frequency=None, power=None):

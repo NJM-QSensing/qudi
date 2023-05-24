@@ -89,8 +89,6 @@ class SequenceGeneratorLogic(GenericLogic):
                                                             ('microwave2_channel', 'a_ch2'),
                                                             ('microwave2_frequency', 2.87e9),
                                                             ('microwave2_amplitude', 0.0),
-                                                            ('rabi_period1', 100e-9),
-                                                            ('rabi_period2', 100e-9),
                                                             ('laser_length', 3e-6),
                                                             ('laser_delay', 500e-9),
                                                             ('wait_time', 1e-6),
