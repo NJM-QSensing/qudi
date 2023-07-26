@@ -1459,12 +1459,12 @@ class PulsedMeasurementLogic(GenericLogic):
 
             for curve in range(self._number_of_curves):
                 header_str += '\tSignal{}'.format(curve)
-                if self._data_units[curve + 1]:
-                    header_str += '({0})'.format(self._data_units[curve + 1])
+                if self._data_units[1]:
+                    header_str += '({0})'.format(self._data_units[1])
                 if with_error:
                     header_str += '\tError{}'.format(curve)
-                    if self._data_units[curve + 1]:
-                        header_str += '({0})'.format(self._data_units[curve + 1])
+                    if self._data_units[1]:
+                        header_str += '({0})'.format(self._data_units[1])
             data = OrderedDict()
             if with_error:
                 data[header_str] = np.vstack((self.signal_data, self.measurement_error[1:])).transpose()

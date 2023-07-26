@@ -1093,6 +1093,11 @@ class PredefinedGeneratorBase:
     @property
     def microwave2_amplitude(self):
         return self.generation_parameters.get('microwave2_amplitude')
+    
+    @property
+    def microwave3_channel(self):
+        channel = self.generation_parameters.get('microwave3_channel')
+        return None if channel == '' else channel
 
     @property
     def laser_length(self):
@@ -1314,6 +1319,33 @@ class PredefinedGeneratorBase:
                 length=length,
                 increment=increment)
             mw_element.pulse_function[self.microwave2_channel] = SamplingFunctions.Sin(
+                amplitude=amp,
+                frequency=freq,
+                phase=phase)
+        return mw_element
+    
+    def _get_mw3_element(self, length, increment, amp=None, freq=None, phase=None):
+        """
+        Creates a MW pulse PulseBlockElement
+
+        @param float length: MW pulse duration in seconds
+        @param float increment: MW pulse duration increment in seconds
+        @param float freq: MW frequency in case of analogue MW channel in Hz
+        @param float amp: MW amplitude in case of analogue MW channel in V
+        @param float phase: MW phase in case of analogue MW channel in deg
+
+        @return: PulseBlockElement, the generated MW element
+        """
+        if self.microwave3_channel.startswith('d'):
+            mw_element = self._get_trigger_element(
+                length=length,
+                increment=increment,
+                channels=self.microwave3_channel)
+        else:
+            mw_element = self._get_idle_element(
+                length=length,
+                increment=increment)
+            mw_element.pulse_function[self.microwave3_channel] = SamplingFunctions.Sin(
                 amplitude=amp,
                 frequency=freq,
                 phase=phase)
