@@ -475,6 +475,22 @@ class MicrowaveSMB100B(Base, MicrowaveInterface):
         self._connection.write(':TRIGger:IMMediate')
         time.sleep(self._FREQ_SWITCH_SPEED)
         return 0
+    
+    def set_frequency_modulation(self, frequency=1e9, deviation = 2e7, source = 'EXT'):
+        """
+        Configure the device for frequency modulation using Path 1, Defaut being deviation of 2e7 Hz and source being external
+        
+        @return int: error code (0:OK, -1:error)
+        """
+        self._connection.write('*RST')
+        self.set_frequency(frequency)
+        self._connection.write('SOURce1:INPut:MODext:COUPling AC')
+        self._connection.write('SOURce1:INPut:MODext:IMPedance G50')
+        self._connection.write('SOURce1:FM1:SOURce '+source)
+        self._connection.write('SOURce1:FM1:DEViation '+str(deviation))
+        self._connection.write('SOURce1:FM1:DEViation:MODE UNCoupled')
+        self._connection.write('SOURce1:FM1:STATe 1')
+        return 0
 
     def set_cw_sweep(self, frequency=None, power=None):
         """ 

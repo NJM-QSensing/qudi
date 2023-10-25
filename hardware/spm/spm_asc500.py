@@ -1212,10 +1212,10 @@ class SPM_ASC500(Base, ScannerInterface):
 
         @return bool: Function returns True if method succesful, False if not
         """
+        curr_z_pm = self._dev.base.getParameter(self._dev.base.getConst('ID_REG_SET_Z_M'))
         self._dev.base.setParameter(self._dev.base.getConst('ID_REG_LOOP_ON'), 0, 0)
-        curr_z_pm = getParameter(self._dev.base.getConst('ID_REG_SET_Z_M'))
-        rel_z_pm = rel_z*10e12
-        move_rel_pm = int(curr_z_pm + rel_z_pm)
+        rel_z_pm = rel_z*1e12
+        move_rel_pm = int(curr_z_pm - rel_z_pm)
         self._dev.base.setParameter(self._dev.base.getConst('ID_REG_SET_Z_M'), move_rel_pm, 0)
         return self._dev.base.getParameter(self._dev.base.getConst('ID_REG_SET_Z_M'))==move_rel_pm
     
