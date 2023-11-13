@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>951</width>
-    <height>771</height>
+    <width>1122</width>
+    <height>672</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>qudi: NVscan</string>
   </property>
   <widget class="QWidget" name="centralwidget"/>
   <widget class="QMenuBar" name="menubar">
@@ -19,10 +19,24 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>951</width>
+     <width>1122</width>
      <height>21</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuCreate_sequence">
+    <property name="title">
+     <string>Create sequence</string>
+    </property>
+    <addaction name="action_Open_sequence_creator"/>
+   </widget>
+   <widget class="QMenu" name="menuConfiguration">
+    <property name="title">
+     <string>Configuration</string>
+    </property>
+    <addaction name="action_Open_configuration"/>
+   </widget>
+   <addaction name="menuCreate_sequence"/>
+   <addaction name="menuConfiguration"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="LeftDock_2">
@@ -106,7 +120,7 @@
    <property name="minimumSize">
     <size>
      <width>91</width>
-     <height>158</height>
+     <height>139</height>
     </size>
    </property>
    <attribute name="dockWidgetArea">
@@ -152,6 +166,16 @@
    </property>
    <property name="toolTip">
     <string>actionStart_NVscan</string>
+   </property>
+  </action>
+  <action name="action_Open_sequence_creator">
+   <property name="text">
+    <string>Open sequence creator</string>
+   </property>
+  </action>
+  <action name="action_Open_configuration">
+   <property name="text">
+    <string>Open configuration</string>
    </property>
   </action>
  </widget>

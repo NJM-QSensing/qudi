@@ -28,7 +28,7 @@ import os
 import markdown
 from qtpy import QtCore
 from qtpy import QtWidgets
-from qtpy.QtWidgets import QMessageBox
+from qtpy.QtWidgets import QMessageBox, QPushButton, QHBoxLayout
 from qtpy import uic
 from pyqtgraph import PlotWidget
 import functools 
@@ -66,6 +66,30 @@ class NVSCANMainWindow(QtWidgets.QMainWindow):
         uic.loadUi(ui_file, self)
         self.show()
 
+class SequenceCreator(QtWidgets.QMainWindow):
+    """ The settings dialog for ODMR measurements.
+    """
+
+    def __init__(self):
+        # Get the path to the *.ui file
+        this_dir = os.path.dirname(__file__)
+        ui_file = os.path.join(this_dir, 'NVscan_sequence_creator.ui')
+
+        # Load it
+        super(SequenceCreator, self).__init__()
+        uic.loadUi(ui_file, self)
+
+class ConfigurationEditor(QtWidgets.QMainWindow):
+    """ The settings dialog for editing measurements configuration.
+    """
+    def __init__(self):
+        this_dir = os.path.dirname(__file__)
+        ui_file = os.path.join(this_dir, 'NVscan_configuration_editor.ui')
+
+        # Load it
+        super().__init__()
+        uic.loadUi(ui_file, self)
+
 class CustomCheckBox(QtWidgets.QCheckBox):
 
     # with the current state and the name of the box
@@ -93,6 +117,7 @@ class NVscanGui(GUIBase):
     _checkbox_container = {}
     _plot_container = {}
     _dockwidget_container = {}
+    _experiments_group_order = []
 
     def __init__(self, config, **kwargs):
         super().__init__(config=config, **kwargs)
@@ -109,19 +134,30 @@ class NVscanGui(GUIBase):
 
         self._NVscan_logic.sigODMRpointScanFinished.connect(self._update_qafm_data)
         self._NVscan_logic.sigODMRpointScanFinished.connect(self._update_NVSpectrum_plots)
-        #self._qafm_logic.sigQAFMScanFinished.connect(self.enable_scan_actions)
+        #self.sigStartNVconfocal.connect(self._NVscan_logic.start_NVconfocal, QtCore.Qt.QueuedConnection)
+        #self.sigStartNVconfocal.connect(self._NVscan_logic.start_NVconfocal, QtCore.Qt.QueuedConnection)
+
 
         self._mw.actionStart_NVscan.triggered.connect(self.start_NVscan_clicked)
+        self._mw.action_Open_sequence_creator.triggered.connect(self._sequence_creator_settings)
+        self._mw.action_Open_configuration.triggered.connect(self._configuration_editor_setting)
+
+        #Connect NV confocal experiments buttons
+        self._mw.PushButton_start_ODMR.clicked.connect(lambda:self.start_NV_confocal_measurement_clicked('ODMR'))
+        self._mw.PushButton_stop_ODMR.clicked.connect(lambda:self.stop_NV_confocal_measurement_clicked('ODMR'))
+        self._mw.PushButton_start_Rabi.clicked.connect(lambda:self.start_NV_confocal_measurement_clicked('Rabi'))
+        self._mw.PushButton_stop_Rabi.clicked.connect(lambda:self.stop_NV_confocal_measurement_clicked('Rabi'))
+        self._mw.PushButton_start_T1.clicked.connect(lambda:self.start_NV_confocal_measurement_clicked('T1'))
+        self._mw.PushButton_stop_T1.clicked.connect(lambda:self.stop_NV_confocal_measurement_clicked('T1'))
+
 
     def on_deactivate(self):
         self._mw.close()
+        self._sc.close()
+        self._ce.close()
         return 0     
     
-    def show(self):
-        """Make window visible and put it above all other windows. """
-        self._mw.show()
-        self._mw.activateWindow()
-        self._mw.raise_()
+    
 
     def initMainUI(self):
         """ Definition, configuration and initialisation of the confocal GUI.
@@ -131,21 +167,31 @@ class NVscanGui(GUIBase):
         Moreover it sets default values.
         """
         self._mw = NVSCANMainWindow()
+        self._sc = SequenceCreator()
+        self._ce = ConfigurationEditor()
         #self._decorate_spectrum_plot()
         self._create_dockwidgets()
         self._create_NVConfocal_widgets()
         self._mw.centralwidget.hide()
         self._initialize_inputs()
+        self._create_combobox_details()
         
     def show(self):
         """Make window visible and put it above all other windows. """
         QtWidgets.QMainWindow.show(self._mw)
         self._mw.activateWindow()
         self._mw.raise_()  
+    
+    def _sequence_creator_settings(self):
+        """ Open the settings menu """
+        self._sc.show()
+
+    def _configuration_editor_setting(self):
+        self._ce.show()
 
     def _initialize_inputs(self):
         
-        # set constraints
+        # AFM setting
         self._mw.X_length_DSpinBox.setRange(0.0, 37e-6)
         self._mw.X_length_DSpinBox.setSuffix('m')
         self._mw.X_length_DSpinBox.setMinimalStep(0.1e-6)
@@ -155,6 +201,38 @@ class NVscanGui(GUIBase):
         self._mw.Y_length_DSpinBox.setSuffix('m')
         self._mw.Y_length_DSpinBox.setMinimalStep(0.1e-6)
         self._mw.Y_length_DSpinBox.setValue(2e-6)
+
+        ## configuration setting
+        self._ce.laser_time_DSpinBox.setSuffix('s')
+        self._ce.laser_time_DSpinBox.setMinimalStep(1e-9)
+        self._ce.laser_time_DSpinBox.setValue(1.5e-6)
+
+        self._ce.wait_time_DSpinBox.setSuffix('s')
+        self._ce.wait_time_DSpinBox.setMinimalStep(1e-9)
+        self._ce.wait_time_DSpinBox.setValue(400e-9)
+
+        self._ce.bin_width_DSpinBox.setSuffix('s')
+        self._ce.bin_width_DSpinBox.setMinimalStep(1e-9)
+        self._ce.bin_width_DSpinBox.setValue(1e-9)
+
+        self._ce.microwave_modulation_frequency_DSpinBox.setSuffix('Hz')
+        self._ce.microwave_modulation_frequency_DSpinBox.setMinimalStep(1e6)
+        self._ce.microwave_modulation_frequency_DSpinBox.setValue(20e6)
+
+        self._ce.microwave_modulation_frequency_DSpinBox.setSuffix('Hz')
+        self._ce.microwave_modulation_frequency_DSpinBox.setMinimalStep(1e6)
+        self._ce.microwave_modulation_frequency_DSpinBox.setRange(0.0, 20e6)
+        self._ce.microwave_modulation_frequency_DSpinBox.setValue(20e6)
+
+        self._ce.analyze_window_start_DSpinBox.setSuffix('s')
+        self._ce.analyze_window_start_DSpinBox.setMinimalStep(self._ce.bin_width_DSpinBox.value())
+        self._ce.analyze_window_start_DSpinBox.setRange(0, self._ce.laser_time_DSpinBox.value())
+        self._ce.analyze_window_start_DSpinBox.setValue(0)
+
+        self._ce.analyze_window_length_DSpinBox.setSuffix('s')
+        self._ce.analyze_window_length_DSpinBox.setMinimalStep(self._ce.bin_width_DSpinBox.value())
+        self._ce.analyze_window_length_DSpinBox.setRange(self._ce.analyze_window_start_DSpinBox.value(), self._ce.laser_time_DSpinBox.value())
+        self._ce.analyze_window_length_DSpinBox.setValue(self._ce.laser_time_DSpinBox.value())
 
 
     
@@ -254,8 +332,8 @@ class NVscanGui(GUIBase):
     def _create_NVConfocal_widgets(self):
         ref_last_dockwidget = None
         is_first = True
-        experiment_list = self._NVscan_logic.NVConfocal_experiments_parameters()
-        for experiment in experiment_list:
+        experiment_dict = self._NVscan_logic.NVConfocal_experiments_parameters()
+        for experiment in experiment_dict:
             #connect all dock widgets to the central widget
             dockwidget = QtWidgets.QDockWidget(self._mw.centralwidget)  
             self._dockwidget_container[experiment] = dockwidget
@@ -268,10 +346,10 @@ class NVscanGui(GUIBase):
             dockwidget.setObjectName(f'dockWidget_{experiment}')
             
             # set size policy for dock widget
-            sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,
-                                               QtWidgets.QSizePolicy.Expanding)
+            sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred,
+                                               QtWidgets.QSizePolicy.Maximum)
             sizePolicy.setHorizontalStretch(0)
-            sizePolicy.setVerticalStretch(0)
+            sizePolicy.setVerticalStretch(30)
             sizePolicy.setHeightForWidth(dockwidget.sizePolicy().hasHeightForWidth())
             dockwidget.setSizePolicy(sizePolicy)
             dockwidget.setAllowedAreas(QtCore.Qt.LeftDockWidgetArea)
@@ -286,6 +364,7 @@ class NVscanGui(GUIBase):
                 self._mw.tabifyDockWidget(ref_last_dockwidget, dockwidget)
             
             ref_last_dockwidget = dockwidget
+
 
     def _create_image_item(self, name, data_matrix):
         """ Helper method to create an Image Item.
@@ -303,19 +382,67 @@ class NVscanGui(GUIBase):
 
     def _decorate_NVspectrum_plotwidget(self,experiment):
         experiment_name = experiment
-        experiments_meas = self._NVscan_logic.NVConfocal_experiments_meas_units()
-        exp_unit_dict = experiments_meas[experiment_name]
-        exp_text = list(exp_unit_dict.keys())         
+        experiment_name_2nd = experiment+'_2nd'
+        experiment_name_3rd = experiment+'_3rd'
+        experiment_name_4th = experiment+'_4th'
+        experiment_name_5th = experiment+'_5th'
+        experiment_name_6th = experiment+'_6th'
+        experiments_meas = self._NVscan_logic.NVConfocal_experiments_measurements()
+        exp_meas_y_name = experiments_meas[experiment_name][0][0]
+        exp_meas_y_unit = experiments_meas[experiment_name][0][1]
+        exp_meas_x_name = experiments_meas[experiment_name][1][0]
+        exp_meas_x_unit = experiments_meas[experiment_name][1][1]     
         self._NV_spectrum_container[experiment_name] = pg.PlotDataItem(
                                     
-                                    pen=pg.mkPen(palette.c1, style=QtCore.Qt.DotLine),
+                                    pen=pg.mkPen(palette.c4, style=QtCore.Qt.DotLine),
                                     symbol='o',
-                                    symbolPen=palette.c1,
-                                    symbolBrush=palette.c1,
+                                    symbolPen=palette.c4,
+                                    symbolBrush=palette.c4,
                                     symbolSize=7)
+        self._NV_spectrum_container[experiment_name_2nd] = pg.PlotDataItem(
+                            
+                            pen=pg.mkPen(palette.c3, style=QtCore.Qt.DotLine),
+                            symbol='o',
+                            symbolPen=palette.c3,
+                            symbolBrush=palette.c3,
+                            symbolSize=7)
+        self._NV_spectrum_container[experiment_name_3rd] = pg.PlotDataItem(
+                            
+                            pen=pg.mkPen(palette.c2, style=QtCore.Qt.DotLine),
+                            symbol='o',
+                            symbolPen=palette.c2,
+                            symbolBrush=palette.c2,
+                            symbolSize=7)
+        self._NV_spectrum_container[experiment_name_4th] = pg.PlotDataItem(
+                            
+                            pen=pg.mkPen(palette.c1, style=QtCore.Qt.DotLine),
+                            symbol='o',
+                            symbolPen=palette.c1,
+                            symbolBrush=palette.c1,
+                            symbolSize=7)
+        self._NV_spectrum_container[experiment_name_5th] = pg.PlotDataItem(
+                            
+                            pen=pg.mkPen(palette.c5, style=QtCore.Qt.DotLine),
+                            symbol='o',
+                            symbolPen=palette.c5,
+                            symbolBrush=palette.c5,
+                            symbolSize=7)
+        self._NV_spectrum_container[experiment_name_6th] = pg.PlotDataItem(
+                            
+                            pen=pg.mkPen(palette.c6, style=QtCore.Qt.DotLine),
+                            symbol='o',
+                            symbolPen=palette.c6,
+                            symbolBrush=palette.c6,
+                            symbolSize=7)
+
         self._dockwidget_container[experiment_name].graphicsView.addItem(self._NV_spectrum_container[experiment_name])
-        self._dockwidget_container[experiment_name].graphicsView.setLabel(axis='left', text= exp_text[0], units=exp_unit_dict[exp_text[0]])
-        self._dockwidget_container[experiment_name].graphicsView.setLabel(axis='bottom', text= exp_text[1], units=exp_unit_dict[exp_text[1]])
+        self._dockwidget_container[experiment_name].graphicsView.addItem(self._NV_spectrum_container[experiment_name_2nd])
+        self._dockwidget_container[experiment_name].graphicsView.addItem(self._NV_spectrum_container[experiment_name_3rd])
+        self._dockwidget_container[experiment_name].graphicsView.addItem(self._NV_spectrum_container[experiment_name_4th])
+        self._dockwidget_container[experiment_name].graphicsView.addItem(self._NV_spectrum_container[experiment_name_5th])
+        self._dockwidget_container[experiment_name].graphicsView.addItem(self._NV_spectrum_container[experiment_name_6th])
+        self._dockwidget_container[experiment_name].graphicsView.setLabel(axis='left', text=exp_meas_y_name, units=exp_meas_y_unit)
+        self._dockwidget_container[experiment_name].graphicsView.setLabel(axis='bottom', text=exp_meas_x_name, units=exp_meas_x_unit)
         self._dockwidget_container[experiment_name].graphicsView.showGrid(x=True, y=True, alpha=0.8)
             
     def _create_colorbar(self, name, colorscale):
@@ -492,44 +619,85 @@ class NVscanGui(GUIBase):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(graphicsView.sizePolicy().hasHeightForWidth())
         graphicsView.setSizePolicy(sizePolicy)
+        
+        parent_dock.GrouScrollAreapBox = ScrollArea = QtWidgets.QScrollArea(content)
+        ScrollArea.setWidgetResizable(True)
+        ScrollArea.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+        ScrollArea.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 
-        # create a grid layout
-        grid = QtWidgets.QGridLayout(content)
-        parent.gridLayout = grid
-        parent.gridLayout.setObjectName("gridLayout")
-
-        # arrange on grid
-        grid.addWidget(graphicsView, 0, 0, 2, 6)
-
-        parent_dock.GroupBox = GroupBox = QtWidgets.QGroupBox('Parameters')
         # create Size Policy for the widget.
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, 
-                                           QtWidgets.QSizePolicy.Minimum)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, 
+                                           QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(parent_dock.sizePolicy().hasHeightForWidth())
-        GroupBox.setSizePolicy(sizePolicy)
+        ScrollArea.setSizePolicy(sizePolicy)
 
         # add each experiments' parameters and spin box
-        GroupBox.setAlignment(QtCore.Qt.AlignLeft)
-        gridLayout_groupBox = QtWidgets.QGridLayout(GroupBox)
-        for key in experiment_dict[experiments_name]:
-            label  = QtWidgets.QLabel(GroupBox)
-            label.setText(key)
-            experiment_parameter_units = experiment_dict[experiments_name][key]
-            if float in experiment_parameter_units:
-                SciDbox = ScienDSpinBox(GroupBox)
-                SciDbox.setSuffix(experiment_parameter_units[0])
-            elif int in experiment_parameter_units:
-                Scibox = ScienSpinBox(GroupBox)
-                Scibox.setSuffix(experiment_parameter_units[0])
-            #setattr(parent_dock, f'label_{key}',label) 
-            #setattr(parent_dock, f'doubleSpinBox_{experiment_dict[experiments_name][key]}',SciDbox)
-            row_pos = list(experiment_dict[experiments_name]).index(key)
-            gridLayout_groupBox.addWidget(label, row_pos+3, 1, 1, 1)
-            gridLayout_groupBox.addWidget(SciDbox, row_pos+3, 2, 1, 1)
+        ScrollArea.setAlignment(QtCore.Qt.AlignLeft)
+        gridLayout_ScrollArea = QtWidgets.QGridLayout(ScrollArea)
         
-        grid.addWidget(GroupBox, 2, 0, 6, 6)
+        for i,para in enumerate(experiment_dict[experiments_name]):
+            label  = QtWidgets.QLabel(ScrollArea)
+            para_name = para[0]
+            para_unit = para[1]
+            para_type = para[2]
+            label.setText(para_name)
+            if para_type == float:
+                Scibox = ScienDSpinBox(ScrollArea)
+                Scibox.setSuffix(para_unit)
+                setattr(self._mw, f'DSpinBox_{experiments_name}_{para_name}',Scibox)
+
+            elif para_type == int:
+                Scibox = ScienSpinBox(ScrollArea)
+                Scibox.setSuffix(para_unit)
+                setattr(self._mw, f'SpinBox_{experiments_name}_{para_name}',Scibox)
+            label.setSizePolicy(sizePolicy)
+            Scibox.setSizePolicy(sizePolicy)
+
+            gridLayout_ScrollArea.addWidget(label, i, 0, 1, 2)
+            gridLayout_ScrollArea.addWidget(Scibox, i, 2, 1, 2)
+        
+        # create start and stop measurements butttons
+        button_start = QtWidgets.QPushButton(f'start {experiments_name}')
+        gridLayout_ScrollArea.addWidget(button_start, i+1, 0, 1, 2)
+        button_stop = QtWidgets.QPushButton(f'stop {experiments_name}')
+        gridLayout_ScrollArea.addWidget(button_stop, i+1, 2, 1, 2)
+        setattr(self._mw, f'PushButton_start_{experiments_name}',button_start)
+        setattr(self._mw, f'PushButton_stop_{experiments_name}',button_stop)
+
+        
+        # create a grid layout for linewidget and groupbox
+        grid = QtWidgets.QGridLayout(content)
+        parent.gridLayout = grid
+        parent.gridLayout.setObjectName("gridLayout")        
+        grid.addWidget(graphicsView, 0, 0, 10, 2)
+        grid.addWidget(ScrollArea, 0, 2, 10, 1)
+    
+    def _create_combobox_details(self):
+        self._mw.hBoxLayout = QHBoxLayout()
+        self._mw.add_measurement_button = QPushButton("Add Measurement")
+        self._mw.add_measurement_button.clicked.connect(self._on_clicked_add_measurement)
+        self._mw.delete_last_measurement_button = QPushButton("Delete Measurement")
+        self._mw.delete_last_measurement_button.clicked.connect(self.on_clicked_delete_last_measurement)
+        self._mw.hBoxLayout.addWidget(self._mw.add_measurement_button)
+        self._mw.hBoxLayout.addWidget(self._mw.delete_last_measurement_button)
+        self._mw.verticalLayout.addLayout(self._mw.hBoxLayout)
+        return 0
+
+    def _on_clicked_add_measurement(self):
+        #experiment_dict = self._NVscan_logic.NVConfocal_experiments_parameters()
+        current_text = self._mw.comboBox.currentText()
+        self._experiments_group_order.append(current_text)
+        self._mw.listWidget.addItem(current_text)
+    
+    def on_clicked_delete_last_measurement(self):
+        count = self._mw.listWidget.count()
+        removed_item = self._mw.listWidget.takeItem(count-1)
+        if removed_item != None:
+            removed_text = removed_item.text()
+            self._experiments_group_order.pop()
+            print(removed_text)
 
     def _update_qafm_data(self):
         """ Update all displays of the qafm scan with data from the logic. """
@@ -605,14 +773,89 @@ class NVscanGui(GUIBase):
 
         return cb_range
 
+    
+        
+    
+    def disable_buttons(self,name):
+        target_experiment_button = name
+        experiment_dict = self._NVscan_logic.NVConfocal_experiments_parameters()
+        for experiments in experiment_dict:
+            if target_experiment_button == experiments:
+                start_button = getattr(self._mw, f'PushButton_start_{target_experiment_button}')
+                start_button.setEnabled(False)
+            else:
+                start_button = getattr(self._mw, f'PushButton_start_{experiments}')
+                stop_button = getattr(self._mw, f'PushButton_stop_{experiments}')
+                start_button.setEnabled(False)
+                stop_button.setEnabled(False)
+
+    def enable_buttons(self,name):
+        target_experiment_button = name
+        experiment_dict = self._NVscan_logic.NVConfocal_experiments_parameters()
+        for experiments in experiment_dict:
+            if target_experiment_button == experiments:
+                start_button = getattr(self._mw, f'PushButton_start_{target_experiment_button}')
+                start_button.setEnabled(True)
+            else:
+                start_button = getattr(self._mw, f'PushButton_start_{experiments}')
+                stop_button = getattr(self._mw, f'PushButton_stop_{experiments}')
+                start_button.setEnabled(True)
+                stop_button.setEnabled(True)
+
+# ========================================================================== 
+#          Measurement: Helper Function for  Measurement
+# ========================================================================== 
+
     def start_NVscan_clicked(self):
-        #self.disable_scan_actions_quanti()
+        """ Triggered by the start_NVscan Button. Initiate the scanning sequence. This function will conduct each NV confocal experiement according to the _experiments_group_order list.
+        """
 
         X_length = self._mw.X_length_DSpinBox.value()
         Y_length = self._mw.Y_length_DSpinBox.value()
         X_pixels = self._mw.X_pixels_SpinBox.value()
         Y_pixels = self._mw.Y_pixels_SpinBox.value()
 
-        self._NVscan_logic.start_ODMR_scan(
-            coord_X_length=X_length, coord_Y_length=Y_length, coord_X_num=X_pixels, 
-            coord_Y_num=Y_pixels)
+        parameter_dict = self.get_NVconfocal_experiment_parameters(experiment_name)
+        config_dict = self.get_NVconfocal_experiement_configuration()
+        measurement_group = self.get_NVconfocal_experiment_configuration
+        for i in range(len(measurement_group)):
+            experiment_name = measurement_group[i]
+            self.start_NV_confocal_scan(experiment_name, parameter_dict, config_dict)
+        return 0
+
+    def start_NV_confocal_scan(self, experiment_name, parameter_dict, config_dict):
+        pass
+
+    def start_NV_confocal_measurement_clicked(self,experiment_name):
+        self.disable_buttons(experiment_name)
+        exp_parameters_dict = self.get_NVconfocal_experiment_parameters(experiment_name)
+        exp_config_dict = self.get_NVconfocal_experiment_configuration()
+        self._NVscan_logic.start_NVconfocal(experiment_name, exp_parameters_dict, exp_config_dict, self)
+
+    def stop_NV_confocal_measurement_clicked(self,name):
+        experiment_name = name
+        self.enable_buttons(experiment_name)
+        #self._NVscan_logic.stop_NVconfocal()
+
+    def get_NVconfocal_experiment_parameters(self, experiment_name):
+        exp_parameters_dict = {}
+        item_list = dir(self._mw)
+        spinbox_list = [keys_name for keys_name in item_list if f'SpinBox_{experiment_name}' in keys_name]
+        for spinbox_name in spinbox_list:
+            if 'DSpinBox_' in spinbox_name:
+                value_name = spinbox_name.replace('DSpinBox_', '')
+            else:
+                value_name = spinbox_name.replace('SpinBox_', '')
+            exp_parameters_dict[value_name] = getattr(self._mw,spinbox_name).value()
+            
+        return exp_parameters_dict
+    
+    def get_NVconfocal_experiment_configuration(self):
+        config_parameters_dict = {}
+        item_list = dir(self._ce)
+        spinbox_list = [keys_name for keys_name in item_list if 'SpinBox' in keys_name]
+        for spinbox_name in spinbox_list:
+            value_name = spinbox_name.replace('_DSpinBox', '')
+            config_parameters_dict[value_name] = getattr(self._ce,spinbox_name).value()
+
+        return config_parameters_dict

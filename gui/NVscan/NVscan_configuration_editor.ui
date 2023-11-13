@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Configuration_editor</class>
+ <widget class="QMainWindow" name="Configuration_editor">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>448</width>
+    <height>328</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>qudi: Config</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout_2">
+    <item row="0" column="0">
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="0" column="2">
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="ScienDSpinBox" name="laser_time_DSpinBox"/>
+          </item>
+          <item>
+           <widget class="ScienDSpinBox" name="wait_time_DSpinBox"/>
+          </item>
+          <item>
+           <widget class="ScienDSpinBox" name="microwave_modulation_frequency_DSpinBox"/>
+          </item>
+          <item>
+           <widget class="ScienDSpinBox" name="analyze_window_start_DSpinBox"/>
+          </item>
+          <item>
+           <widget class="ScienDSpinBox" name="analyze_window_length_DSpinBox"/>
+          </item>
+          <item>
+           <widget class="ScienDSpinBox" name="bin_width_DSpinBox"/>
+          </item>
+         </layout>
+        </item>
+        <item row="0" column="1">
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QLabel" name="laser_time">
+            <property name="text">
+             <string>laser_time</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="wait_time">
+            <property name="text">
+             <string>wait_time</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="microwave_modulation_frequency">
+            <property name="text">
+             <string>microwave_modulation_frequency</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="analyze_window_start">
+            <property name="text">
+             <string>analyze_window_start</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="analyze_window_length">
+            <property name="text">
+             <string>analyze_window_length</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="bin_widths">
+            <property name="text">
+             <string>bin_width</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>448</width>
+     <height>21</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ScienDSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>qtwidgets.scientific_spinbox.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

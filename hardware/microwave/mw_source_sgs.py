@@ -35,7 +35,7 @@ from interface.microwave_interface import MicrowaveMode
 from interface.microwave_interface import TriggerEdge
 
 
-class MicrowaveSgs(Base, MicrowaveInterface):
+class MicrowaveSgs(Base):
     """ Hardware file to control a R&S SGS100A microwave device.
 
     Example config for copy-paste:
@@ -49,8 +49,8 @@ class MicrowaveSgs(Base, MicrowaveInterface):
 
     # visa address of the hardware : this can be over ethernet, the name is here for
     # backward compatibility
-    _address = ConfigOption('gpib_address', missing='error')
-    _timeout = ConfigOption('gpib_timeout', 10, missing='warn')
+    _address = ConfigOption('tcpip_address', missing='error')
+    _timeout = ConfigOption('tcpip_timeout', 10, missing='warn')
 
     # to limit the power to a lower value that the hardware can provide
     _max_power = ConfigOption('max_power', None)
@@ -79,6 +79,7 @@ class MicrowaveSgs(Base, MicrowaveInterface):
 
     def on_deactivate(self):
         """ Cleanup performed during deactivation of the module. """
+        self.unlock()
         self.rm.close()
         return
 
@@ -165,6 +166,26 @@ class MicrowaveSgs(Base, MicrowaveInterface):
         """
         # This case works for cw AND sweep mode
         return float(self._connection.query(':POWer:POWer?'))
+    
+    def set_power(self, power=None):
+        """ Sets the microwave source in CW mode, and sets the MW power.
+        Method ignores whether the output is on or off
+
+        @param (float) power: power to set in dBm
+
+        @return int: error code (0:OK, -1:error)
+        """
+        mode, is_running = self.get_status()
+
+        # Activate CW mode
+        if mode != 'cw':
+            self._command_wait(':FREQ:MODE CW')
+
+        # Set CW power
+        if power is not None:
+            self._command_wait(':POW {0:f}'.format(power))
+
+        return 0
 
     def get_frequency(self):
         """
@@ -243,6 +264,26 @@ class MicrowaveSgs(Base, MicrowaveInterface):
         actual_freq = self.get_frequency()
         actual_power = self.get_power()
         return actual_freq, actual_power, mode
+
+    def set_frequency(self, frequency=None):
+        """ Sets the microwave source in CW mode, and sets the MW power.
+        Method ignores whether the output is on or off
+
+        @param (float) frequency: frequency to set in Hz
+
+        @return int: error code (0:OK, -1:error)
+        """
+        mode, is_running = self.get_status()
+
+        # Activate CW mode
+        if mode != 'cw':
+            self._command_wait(':FREQ:MODE CW')
+
+        # Set CW frequency
+        if frequency is not None:
+            self._command_wait(':FREQ {0:f}'.format(frequency))
+
+        return 0
 
     def list_on(self):
         """
@@ -394,4 +435,47 @@ class MicrowaveSgs(Base, MicrowaveInterface):
 
         self._connection.write('*TRG')
         time.sleep(self._FREQ_SWITCH_SPEED)  # that is the switching speed
+        return 0
+    
+    def unlock(self):
+        """
+        Unlock the device
+
+        @return int: error code (0:OK, -1:error)
+        """
+        self._connection.write('UNLock 72349234')
+
+        return 0
+
+    def set_ext_pulse_mod(self):
+        """
+        Set the extneral gated pulse modulation
+
+        @return int: error code (0:OK, -1:error)
+        """
+        self._connection.write('SOUR:PULM:SOUR EXT') # External triggered
+        self._connection.write('SOUR:PULM:TRIG:MODE EGAT') # mode = gated trigger
+        self._connection.write('SOUR:PULM:TRIG:EXT:IMP G50') # External input impedance
+        self._connection.write('SOUR:PULM:STAT 1') # Turn pulse modulation on
+
+        return 0
+    
+    def set_ext_pulse_mod_off(self):
+        """
+        Set the extneral gated pulse modulation off
+
+        @return int: error code (0:OK, -1:error)
+        """
+        self._connection.write('SOUR:PULM:STAT 0') # Turn pulse modulation on
+
+        return 0
+
+    def set_IQ_mod(self):
+        """
+        Set the IQ modulation
+
+        @return int: error code (0:OK, -1:error)
+        """
+        self._connection.write('SOUR:IQ:STAT ON') # IQ mod on
+
         return 0
