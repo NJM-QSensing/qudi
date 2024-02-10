@@ -104,7 +104,7 @@ class MicrowaveSMB100B(Base, MicrowaveInterface):
         limits.supported_modes = (MicrowaveMode.CW, MicrowaveMode.SWEEP)
 
         limits.min_power = -145
-        limits.max_power = -1
+        limits.max_power = 5
 
         limits.min_frequency = 8e3
         limits.max_frequency = 6e9

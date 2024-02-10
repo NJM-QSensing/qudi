@@ -2498,8 +2498,8 @@ class PulsedMeasurementGui(GUIBase):
         for i in range(1, signal_data.shape[0]):
             self.signal_image_error_bars_dict["signal_image{}_error".format(i)].setData(x=signal_data[0],
                                                                                         y=signal_data[i],
-                                                                                        top=measurement_error[i],
-                                                                                        bottom=measurement_error[i],
+                                                                                        top=0,
+                                                                                        bottom=0,
                                                                                         beam=beamwidth)
 
         # dealing with the actual signal plot
