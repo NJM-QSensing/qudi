@@ -35,7 +35,7 @@ from interface.microwave_interface import MicrowaveMode
 from interface.microwave_interface import TriggerEdge
 
 
-class MicrowaveSgs(Base):
+class MicrowaveSgs(Base, MicrowaveInterface):
     """ Hardware file to control a R&S SGS100A microwave device.
 
     Example config for copy-paste:
